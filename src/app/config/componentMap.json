@@ -1,0 +1,44 @@
+{
+  "shared": {
+    "components": {
+      "atoms": {
+        "Button": "Reusable button component with loading state",
+        "Input": "Form input component with validation support",
+        "Spinner": "Loading spinner animation"
+      },
+      "molecules": {
+        "CanAccess": "Role-based access control wrapper",
+        "WithStatus": "Loading and error state handler",
+        "FormBuilder": "Dynamic form generator from schema"
+      },
+      "organisms": {
+        "Form": "Base form component with validation"
+      }
+    },
+    "hooks": {
+      "useAuth": "Authentication state and methods",
+      "useAsync": "Async operation handler with loading/error states"
+    }
+  },
+  "features": {
+    "template": {
+      "components": {
+        "TemplateForm": "Form for creating/editing templates",
+        "TemplateList": "List view of templates with filtering",
+        "TemplateDetails": "Detailed view of a single template"
+      },
+      "routes": [
+        "/templates",
+        "/templates/new",
+        "/templates/:id",
+        "/templates/:id/edit"
+      ],
+      "services": {
+        "templateService": "CRUD operations for templates"
+      },
+      "hooks": {
+        "useTemplateLogic": "Business logic for template management"
+      }
+    }
+  }
+}

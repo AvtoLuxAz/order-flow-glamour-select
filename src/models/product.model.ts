@@ -1,17 +1,12 @@
-
-// Product model and related types
 export interface Product {
-  id?: number;
+  id: string;
   name: string;
-  price?: number;
-  quantity?: number;
   description?: string;
-}
-
-export interface ProductFormData {
-  name: string;
   price: number;
-  description?: string;
-  stock?: number;
+  quantity?: number;
   category?: string;
+  image?: string;
+  isActive?: boolean;
+  created_at: string;
+  updated_at: string;
 }

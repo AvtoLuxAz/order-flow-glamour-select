@@ -1,73 +1,157 @@
-# Welcome to your Lovable project
+# Order Flow Glamour Select
 
-## Project info
+A modern React TypeScript application with best practices for security, performance, and maintainability.
 
-**URL**: https://lovable.dev/projects/80edffc9-1f02-4aa0-8b7b-4534c38661f5
+## Features
 
-## How can I edit this code?
+### Security
 
-There are several ways of editing your application.
+- Encrypted local storage with AES-GCM
+- CSRF protection
+- XSS prevention
+- Secure token management
+- Session management
+- User role and permission management
 
-**Use Lovable**
+### Performance
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/80edffc9-1f02-4aa0-8b7b-4534c38661f5) and start prompting.
+- Performance monitoring with Web Vitals
+- Debounce and throttle utilities
+- Memoization helpers
+- Virtual scrolling
+- Lazy loading
+- Image optimization
+- RequestAnimationFrame utilities
 
-Changes made via Lovable will be committed automatically to this repo.
+### Architecture
 
-**Use your preferred IDE**
+- Feature-based folder structure
+- Core utilities and types
+- Shared components and hooks
+- Proper TypeScript configurations
+- Comprehensive logging system
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Project Structure
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+src/
+├── app/                    # Application setup
+│   ├── config/            # App configuration
+│   ├── providers/         # Context providers
+│   ├── routes/            # Route definitions
+│   ├── store/             # State management
+│   └── styles/            # Global styles
+├── core/                  # Core functionality
+│   ├── constants/         # Constants and configs
+│   ├── security/          # Security utilities
+│   ├── performance/       # Performance utilities
+│   ├── types/            # TypeScript types
+│   └── utils/            # Core utilities
+├── features/             # Feature modules
+│   ├── auth/             # Authentication
+│   ├── dashboard/        # Dashboard
+│   └── customers/        # Customer management
+├── shared/               # Shared resources
+│   ├── components/       # Reusable components
+│   ├── hooks/           # Custom hooks
+│   ├── styles/          # Shared styles
+│   └── utils/           # Shared utilities
+└── assets/              # Static assets
+    ├── images/          # Images
+    ├── fonts/           # Fonts
+    └── icons/           # Icons
 ```
 
-**Edit a file directly in GitHub**
+## Getting Started
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Install dependencies:
 
-**Use GitHub Codespaces**
+   ```bash
+   npm install
+   ```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+2. Set up environment variables:
 
-## What technologies are used for this project?
+   ```bash
+   cp .env.example .env
+   ```
 
-This project is built with:
+3. Start development server:
+   ```bash
+   npm run dev
+   ```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Security Best Practices
 
-## How can I deploy this project?
+### Encryption
 
-Simply open [Lovable](https://lovable.dev/projects/80edffc9-1f02-4aa0-8b7b-4534c38661f5) and click on Share -> Publish.
+- All sensitive data is encrypted using AES-GCM
+- Secure key derivation with PBKDF2
+- Random IV generation for each encryption
+- Secure token storage
 
-## Can I connect a custom domain to my Lovable project?
+### CSRF Protection
 
-Yes, you can!
+- CSRF tokens for forms
+- Token validation on requests
+- Secure cookie handling
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### XSS Prevention
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- Input sanitization
+- Content Security Policy
+- HTML escaping utilities
+
+## Performance Optimization
+
+### Monitoring
+
+- Web Vitals tracking
+- Resource timing
+- Performance metrics
+- Custom performance measurements
+
+### Optimization
+
+- Virtual scrolling for large lists
+- Image optimization
+- Lazy loading
+- Debounce and throttle
+- Memoization
+
+## Development Guidelines
+
+### Code Style
+
+- Follow TypeScript best practices
+- Use functional components
+- Implement proper error handling
+- Add comprehensive logging
+- Write unit tests
+
+### Security
+
+- Never store sensitive data in plain text
+- Use environment variables for secrets
+- Implement proper validation
+- Follow OWASP guidelines
+
+### Performance
+
+- Monitor bundle size
+- Optimize images
+- Use code splitting
+- Implement caching
+- Monitor performance metrics
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a pull request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

@@ -1,60 +1,34 @@
-
-// Appointment model and related types
-import { Customer } from './customer.model';
-import { Service } from './service.model';
-import { Product } from './product.model';
-
-export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'rejected' | 'cancelled';
-
-export interface ServiceProvider {
-  id: number;
-  name: string;
-  serviceId?: number;
-}
+import { Service } from "./service.model";
+import { Product } from "./product.model";
 
 export interface Appointment {
-  id: number;
-  customerId: number;
-  date: string;
-  startTime: string;
-  endTime: string;
-  status: AppointmentStatus;
-  service: string;
-  staff?: string[];
-  products?: string[] | Product[];
-  totalAmount?: number;
-  amountPaid?: number;
-  remainingBalance?: number;
-  orderReference?: string;
-  time?: string;
-  duration?: string;
-  paymentMethod?: string;
-  serviceProviders?: ServiceProvider[];
+  id: string;
+  customerId: string;
+  serviceId?: string;
+  service?: string;
   services?: Service[];
   servicePrice?: number;
   price?: number;
-  selectedProducts?: Product[];
-  createdAt?: string;
-  rejectionReason?: string;
-}
-
-export interface AppointmentFormData {
-  customerId: number;
-  date: string;
-  startTime: string;
-  endTime?: string;
-  service: string;
+  staffId?: string;
   staff?: string[];
-  products?: (string | Product)[];
+  serviceProviders?: Array<{
+    serviceId: string;
+    name: string;
+  }>;
+  date: string;
+  time?: string;
+  startTime?: string;
+  endTime?: string;
+  duration?: number;
+  status: string;
+  notes?: string;
+  orderReference?: string;
   totalAmount?: number;
   amountPaid?: number;
-  status?: AppointmentStatus;
-}
-
-export interface AppointmentFilters {
-  status?: AppointmentStatus;
-  dateFrom?: string;
-  dateTo?: string;
-  customerId?: number;
-  search?: string;
+  remainingBalance?: number;
+  paymentMethod?: string;
+  products?: Product[];
+  selectedProducts?: string[];
+  created_at: string;
+  updated_at: string;
 }

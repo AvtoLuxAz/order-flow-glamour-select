@@ -1,8 +1,6 @@
-
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-// This component fixes the scroll behavior when navigating between pages
 const ScrollToTop = () => {
   const { pathname } = useLocation();
 

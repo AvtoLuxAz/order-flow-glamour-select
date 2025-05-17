@@ -1,18 +1,12 @@
-
-// Service model and related types
 export interface Service {
-  id: number;
+  id: string;
   name: string;
-  price: number;
-  duration?: string;
   description?: string;
-  relatedProducts?: number[];
-}
-
-export interface ServiceFormData {
-  name: string;
   price: number;
-  duration?: string;
-  description?: string;
-  relatedProducts?: number[];
+  duration?: number;
+  category?: string;
+  image?: string;
+  isActive?: boolean;
+  created_at: string;
+  updated_at: string;
 }

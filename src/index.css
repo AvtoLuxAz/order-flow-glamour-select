@@ -1,202 +1,199 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 300 33% 99%;
-    --foreground: 300 15% 15%;
+    :root {
+        --background: 300 33% 99%;
+        --foreground: 300 15% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 300 15% 15%;
+        --card: 0 0% 100%;
+        --card-foreground: 300 15% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 300 15% 15%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 300 15% 15%;
 
-    --primary: 300 60% 55%;
-    --primary-foreground: 300 10% 98%;
+        --primary: 300 60% 55%;
+        --primary-foreground: 300 10% 98%;
 
-    --secondary: 270 40% 96%;
-    --secondary-foreground: 300 15% 15%;
+        --secondary: 270 40% 96%;
+        --secondary-foreground: 300 15% 15%;
 
-    --muted: 300 10% 96%;
-    --muted-foreground: 300 5% 45%;
+        --muted: 300 10% 96%;
+        --muted-foreground: 300 5% 45%;
 
-    --accent: 250 40% 96%;
-    --accent-foreground: 300 15% 15%;
+        --accent: 250 40% 96%;
+        --accent-foreground: 300 15% 15%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 300 10% 98%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 300 10% 98%;
 
-    --border: 300 20% 90%;
-    --input: 300 20% 90%;
-    --ring: 300 60% 55%;
+        --border: 300 20% 90%;
+        --input: 300 20% 90%;
+        --ring: 300 60% 55%;
 
-    --radius: 0.5rem;
+        --radius: 0.5rem;
 
-    --sidebar-background: 300 33% 99%;
-    --sidebar-foreground: 300 15% 15%;
-    --sidebar-primary: 300 60% 55%;
-    --sidebar-primary-foreground: 300 10% 98%;
-    --sidebar-accent: 300 20% 96%;
-    --sidebar-accent-foreground: 300 15% 15%;
-    --sidebar-border: 300 20% 90%;
-    --sidebar-ring: 300 60% 55%;
-  }
+        --sidebar-background: 300 33% 99%;
+        --sidebar-foreground: 300 15% 15%;
+        --sidebar-primary: 300 60% 55%;
+        --sidebar-primary-foreground: 300 10% 98%;
+        --sidebar-accent: 300 20% 96%;
+        --sidebar-accent-foreground: 300 15% 15%;
+        --sidebar-border: 300 20% 90%;
+        --sidebar-ring: 300 60% 55%;
+    }
 
-  .dark {
-    --background: 300 15% 10%;
-    --foreground: 300 10% 98%;
+    .dark {
+        --background: 300 15% 10%;
+        --foreground: 300 10% 98%;
 
-    --card: 300 15% 12%;
-    --card-foreground: 300 10% 98%;
+        --card: 300 15% 12%;
+        --card-foreground: 300 10% 98%;
 
-    --popover: 300 15% 12%;
-    --popover-foreground: 300 10% 98%;
+        --popover: 300 15% 12%;
+        --popover-foreground: 300 10% 98%;
 
-    --primary: 300 60% 55%;
-    --primary-foreground: 300 10% 98%;
+        --primary: 300 60% 55%;
+        --primary-foreground: 300 10% 98%;
 
-    --secondary: 300 20% 20%;
-    --secondary-foreground: 300 10% 98%;
+        --secondary: 300 20% 20%;
+        --secondary-foreground: 300 10% 98%;
 
-    --muted: 300 20% 20%;
-    --muted-foreground: 300 10% 70%;
+        --muted: 300 20% 20%;
+        --muted-foreground: 300 10% 70%;
 
-    --accent: 300 20% 20%;
-    --accent-foreground: 300 10% 98%;
+        --accent: 300 20% 20%;
+        --accent-foreground: 300 10% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 300 10% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 300 10% 98%;
 
-    --border: 300 20% 25%;
-    --input: 300 20% 25%;
-    --ring: 300 60% 55%;
-    
-    --sidebar-background: 300 15% 12%;
-    --sidebar-foreground: 300 10% 98%;
-    --sidebar-primary: 300 60% 55%;
-    --sidebar-primary-foreground: 300 10% 98%;
-    --sidebar-accent: 300 20% 20%;
-    --sidebar-accent-foreground: 300 10% 98%;
-    --sidebar-border: 300 20% 25%;
-    --sidebar-ring: 300 60% 55%;
-  }
+        --border: 300 20% 25%;
+        --input: 300 20% 25%;
+        --ring: 300 60% 55%;
+
+        --sidebar-background: 300 15% 12%;
+        --sidebar-foreground: 300 10% 98%;
+        --sidebar-primary: 300 60% 55%;
+        --sidebar-primary-foreground: 300 10% 98%;
+        --sidebar-accent: 300 20% 20%;
+        --sidebar-accent-foreground: 300 10% 98%;
+        --sidebar-border: 300 20% 25%;
+        --sidebar-ring: 300 60% 55%;
+    }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  /* Improve scrolling on touch devices */
-  @media (hover: none) {
-    ::-webkit-scrollbar {
-      width: 0px;
-      background: transparent;
+    * {
+        @apply border-border;
     }
-  }
+
+    body {
+        @apply bg-background text-foreground;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Improve scrolling on touch devices */
+    @media (hover: none) {
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+    }
 }
 
 /* Responsive utilities */
 @layer utilities {
-  .touch-action-none {
-    touch-action: none;
-  }
-  
-  .hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .text-balance {
-    text-wrap: balance;
-  }
-  
-  .text-pretty {
-    text-wrap: pretty;
-  }
-  
-  @media (max-width: 640px) {
-    .sm-touch-scroll {
-      -webkit-overflow-scrolling: touch;
-      overflow-x: auto;
+    .touch-action-none {
+        touch-action: none;
     }
-  }
+
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .text-balance {
+        text-wrap: balance;
+    }
+
+    .text-pretty {
+        text-wrap: pretty;
+    }
+
+    @media (max-width: 640px) {
+        .sm-touch-scroll {
+            -webkit-overflow-scrolling: touch;
+            overflow-x: auto;
+        }
+    }
 }
 
 .checkout-step {
-  opacity: 0;
-  transform: translateY(10px);
-  animation: slide-up 0.4s ease-out forwards;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: slide-up 0.4s ease-out forwards;
 }
 
 .service-card {
-  transition: all 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .service-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 .service-card.selected {
-  border-color: hsl(var(--primary));
-  background-color: hsl(var(--primary) / 0.05);
+    border-color: hsl(var(--primary));
+    background-color: hsl(var(--primary) / 0.05);
 }
 
 [data-vaul-drawer][data-vaul-drawer-direction="bottom"]::after {
-  display: none !important;
+    display: none !important;
 }
 
 /* Responsive adjustments */
 @media (max-width: 640px) {
-  .checkout-step {
-    animation-duration: 0.3s;
-  }
-  
-  .service-card:hover {
-    transform: none;
-  }
+    .checkout-step {
+        animation-duration: 0.3s;
+    }
+
+    .service-card:hover {
+        transform: none;
+    }
 }
 
-/* Animation keyframes */
 @keyframes slide-up {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* Media query for larger screens */
 @media (min-width: 1024px) {
-  .lg-grid-cols-responsive {
-    grid-template-columns: 25% 75%;
-  }
+    .lg-grid-cols-responsive {
+        grid-template-columns: 25% 75%;
+    }
 }
 
-/* Card hover effects - disable on touch devices */
 @media (hover: hover) {
-  .hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  
-  .hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.15);
-  }
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.15);
+    }
 }
