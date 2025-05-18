@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -73,14 +73,14 @@ const CustomersTab = () => {
     }
   }, [toast]);
 
-  // İlk yüklənmədə bir dəfə çağırırıq
+  // Only fetch customers once on initial load
   useEffect(() => {
     fetchCustomers();
-  }, []); // Boş dependency array - yalnız bir dəfə çağırır
+  }, [fetchCustomers]);
 
   const handleDrawerClose = async (open: boolean) => {
     if (!open) {
-      await fetchCustomers(); // Drawer bağlandıqda yeniləyirik
+      await fetchCustomers(); // Refresh when drawer is closed
     }
     setDrawerOpen(open);
   };
@@ -163,10 +163,63 @@ const CustomersTab = () => {
     }
   };
 
-  const handleAddAppointment = (customer: Customer) => {
-    setSelectedCustomerForAppointment(customer);
+  // Create a memoized version of the customer to prevent unnecessary re-renders
+  const handleAddAppointment = useCallback((customer: Customer) => {
+    // Create a complete deep copy with all necessary fields
+    const customerCopy = {
+      id: customer.id,
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      gender: customer.gender,
+      lastVisit: customer.lastVisit,
+      totalSpent: customer.totalSpent,
+      // Add any other fields you need but keep it minimal
+    };
+
+    setSelectedCustomerForAppointment(customerCopy);
     setAddAppointmentOpen(true);
-  };
+  }, []);
+
+  // This component is only rendered when the appointment drawer is open
+  // Using memo to prevent unnecessary re-renders
+  const AppointmentDrawerContent = React.memo(() => {
+    // Move useMemo outside the conditional
+    const memoizedCustomer = React.useMemo(
+      () => selectedCustomerForAppointment,
+      [selectedCustomerForAppointment]
+    );
+
+    if (!selectedCustomerForAppointment) return null;
+
+    return (
+      <>
+        <div className="p-4 mb-4 bg-gray-50 rounded-md border">
+          <h3 className="font-medium mb-2">Customer Information</h3>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <span className="font-medium">Name:</span> {memoizedCustomer.name}
+            </div>
+            <div>
+              <span className="font-medium">Phone:</span>{" "}
+              {memoizedCustomer.phone}
+            </div>
+            {memoizedCustomer.email && (
+              <div>
+                <span className="font-medium">Email:</span>{" "}
+                {memoizedCustomer.email}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Pass a flag to prevent refetching customer data */}
+        <OrderProvider initialCustomer={memoizedCustomer}>
+          <CheckoutFlow bookingMode="staff" />
+        </OrderProvider>
+      </>
+    );
+  });
 
   return (
     <>
@@ -290,15 +343,12 @@ const CustomersTab = () => {
           {totalPages > 1 && (
             <div className="flex justify-between items-center mt-4">
               <div className="text-sm text-muted-foreground">
-                Showing{" "}
                 {filteredCustomers.length === 0
                   ? "No entries"
                   : `Showing ${(currentPage - 1) * pageSize + 1} to ${Math.min(
                       currentPage * pageSize,
                       filteredCustomers.length
-                    )} of ${filteredCustomers.length} entries`}{" "}
-                to {Math.min(currentPage * pageSize, filteredCustomers.length)}{" "}
-                of {filteredCustomers.length} entries
+                    )} of ${filteredCustomers.length} entries`}
               </div>
               <div className="flex gap-2">
                 <Button
@@ -372,123 +422,24 @@ const CustomersTab = () => {
                       className="flex items-center space-x-2 border rounded-md p-3 cursor-pointer hover:bg-glamour-50 transition-colors"
                     >
                       <RadioGroupItem value={gender} id={`gender-${gender}`} />
-                      <Label
-                        htmlFor={`gender-${gender}`}
-                        className="flex items-center cursor-pointer flex-1"
-                      >
-                        <UserCircle
-                          className={`h-5 w-5 mr-2 ${
-                            gender === "female"
-                              ? "text-pink-500"
-                              : gender === "male"
-                              ? "text-blue-500"
-                              : "text-gray-500"
-                          }`}
-                        />
-                        <span>
-                          {gender.charAt(0).toUpperCase() + gender.slice(1)}
-                        </span>
-                      </Label>
+                      {gender}
                     </div>
                   ))}
                 </RadioGroup>
               </div>
-
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-                <div>
-                  <Label htmlFor="phone" className="text-base font-medium">
-                    Phone Number
-                  </Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+994 XX XXX XX XX"
-                    value={newCustomer.phone}
-                    onChange={(e) =>
-                      setNewCustomer({ ...newCustomer, phone: e.target.value })
-                    }
-                    className="mt-1"
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Required for customer identification
-                  </p>
-                </div>
-
-                <div>
-                  <Label htmlFor="email" className="text-base font-medium">
-                    Email Address
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="customer@example.com"
-                    value={newCustomer.email}
-                    onChange={(e) =>
-                      setNewCustomer({ ...newCustomer, email: e.target.value })
-                    }
-                    className="mt-1"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Optional for communications
-                  </p>
-                </div>
-              </div>
             </div>
 
-            <div className="flex gap-2 justify-end pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setAddCustomerOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="bg-glamour-700 hover:bg-glamour-800 text-white"
-              >
-                Save Customer
-              </Button>
-            </div>
+            <Button type="submit">Add Customer</Button>
           </form>
         </DetailDrawer>
 
-        {/* Add Appointment Drawer */}
+        {/* Appointment Drawer */}
         <DetailDrawer
           open={addAppointmentOpen}
-          onOpenChange={(open) => {
-            setAddAppointmentOpen(open);
-            if (!open) setSelectedCustomerForAppointment(null);
-          }}
-          title="Book Appointment"
-          className="w-full md:max-w-3xl"
+          onOpenChange={setAddAppointmentOpen}
+          title="Appointment Details"
         >
-          <div className="p-4 mb-4 bg-gray-50 rounded-md border">
-            <h3 className="font-medium mb-2">Customer Information</h3>
-            {selectedCustomerForAppointment && (
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="font-medium">Name:</span>{" "}
-                  {selectedCustomerForAppointment.name}
-                </div>
-                <div>
-                  <span className="font-medium">Phone:</span>{" "}
-                  {selectedCustomerForAppointment.phone}
-                </div>
-                {selectedCustomerForAppointment.email && (
-                  <div>
-                    <span className="font-medium">Email:</span>{" "}
-                    {selectedCustomerForAppointment.email}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <OrderProvider initialCustomer={selectedCustomerForAppointment}>
-            <CheckoutFlow bookingMode="staff" />
-          </OrderProvider>
+          <AppointmentDrawerContent />
         </DetailDrawer>
       </div>
     </>

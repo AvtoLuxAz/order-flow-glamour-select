@@ -490,11 +490,19 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
                                           <div className="font-medium">
                                             {product.name}
                                           </div>
-                                          {product.quantity && (
-                                            <div className="text-xs text-gray-500">
-                                              Qty: {product.quantity}
-                                            </div>
-                                          )}
+                                          {typeof product === "object" &&
+                                            "quantity" in product && (
+                                              <div className="text-xs text-gray-500">
+                                                Qty:{" "}
+                                                {
+                                                  (
+                                                    product as {
+                                                      quantity: number;
+                                                    }
+                                                  ).quantity
+                                                }
+                                              </div>
+                                            )}
                                         </>
                                       )}
                                     </div>
