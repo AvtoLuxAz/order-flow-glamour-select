@@ -21,7 +21,7 @@ export class AppointmentService extends ApiService {
     const { data, error } = await supabase
       .from("appointments")
       .select("*")
-      .order("date", { ascending: true });
+      .order("appointment_date", { ascending: true });
 
     if (error) {
       return { error: error.message };
@@ -61,9 +61,9 @@ export class AppointmentService extends ApiService {
     const { data, error } = await supabase
       .from("appointments")
       .select("*")
-      .eq("date", date)
+      .eq("appointment_date", date)
       .contains("staff", [staffId])
-      .or(`startTime.lte.${endTime},endTime.gte.${startTime}`);
+      .or(`start_time.lte.${endTime},end_time.gte.${startTime}`);
 
     if (error) {
       return { error: error.message };
@@ -86,8 +86,8 @@ export class AppointmentService extends ApiService {
     const { data, error } = await supabase
       .from("appointments")
       .select("*")
-      .eq("date", date)
-      .or(`startTime.lte.${endTime},endTime.gte.${startTime}`);
+      .eq("appointment_date", date)
+      .or(`start_time.lte.${endTime},end_time.gte.${startTime}`);
 
     if (error) {
       return { error: error.message };
@@ -110,7 +110,7 @@ export class AppointmentService extends ApiService {
         rejectionReason: "",
       } as Appointment;
 
-      mockAppointments.push(newAppointment as any);
+      mockAppointments.push(newAppointment as Appointment);
       return { data: newAppointment };
     }
 
@@ -188,7 +188,7 @@ export class AppointmentService extends ApiService {
           ...mockAppointments[index],
           ...appointment,
           rejectionReason: mockAppointments[index].rejectionReason || "",
-        } as any;
+        } as Appointment;
         return { data: mockAppointments[index] as Appointment };
       }
       return { error: "Appointment not found" };
@@ -208,7 +208,7 @@ export class AppointmentService extends ApiService {
         mockAppointments[index] = {
           ...mockAppointments[index],
           status: "confirmed",
-        } as any;
+        } as Appointment;
         return { data: mockAppointments[index] as Appointment };
       }
       return { error: "Appointment not found" };
@@ -230,7 +230,7 @@ export class AppointmentService extends ApiService {
           ...mockAppointments[index],
           status: "rejected",
           rejectionReason: reason || "No reason provided",
-        } as any;
+        } as Appointment;
         return { data: mockAppointments[index] as Appointment };
       }
       return { error: "Appointment not found" };
@@ -250,7 +250,7 @@ export class AppointmentService extends ApiService {
         mockAppointments[index] = {
           ...mockAppointments[index],
           status: "completed",
-        } as any;
+        } as Appointment;
         return { data: mockAppointments[index] as Appointment };
       }
       return { error: "Appointment not found" };
@@ -268,7 +268,7 @@ export class AppointmentService extends ApiService {
         mockAppointments[index] = {
           ...mockAppointments[index],
           status: "paid",
-        } as any;
+        } as Appointment;
         return { data: mockAppointments[index] as Appointment };
       }
       return { error: "Appointment not found" };

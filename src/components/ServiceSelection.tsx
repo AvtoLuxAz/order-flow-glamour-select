@@ -81,6 +81,7 @@ const ServiceSelection = () => {
   const [recommendedProducts, setRecommendedProducts] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalDuration, setTotalDuration] = useState(0);
+  const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -148,6 +149,20 @@ const ServiceSelection = () => {
     };
     fetchStaff();
   }, []);
+  const fetchAppointments = async () => {
+    const { data, error } = await supabase
+      .from("appointments")
+      .select("*")
+      .eq("appointment_date", orderState.date)
+      .eq("staff_id", selectedStaff)
+      .or("start_time.lte,end_time.gte");
+
+    if (error) {
+      console.error("Error fetching appointments:", error);
+    } else {
+      setAppointments(data);
+    }
+  };
   useEffect(() => {
     const fetchRelatedProducts = async () => {
       try {

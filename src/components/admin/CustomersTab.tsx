@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -52,7 +52,7 @@ const CustomersTab = () => {
     gender: "female",
   });
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     try {
       setLoading(true);
       const response = await customerService.getAll();
@@ -71,15 +71,16 @@ const CustomersTab = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
+  // İlk yüklənmədə bir dəfə çağırırıq
   useEffect(() => {
     fetchCustomers();
-  }, [toast]);
+  }, []); // Boş dependency array - yalnız bir dəfə çağırır
 
   const handleDrawerClose = async (open: boolean) => {
     if (!open) {
-      await fetchCustomers();
+      await fetchCustomers(); // Drawer bağlandıqda yeniləyirik
     }
     setDrawerOpen(open);
   };
@@ -128,7 +129,7 @@ const CustomersTab = () => {
           customerName: response.data.name,
         });
 
-        setCustomers([response.data, ...customers]);
+        setCustomers((prev) => [response.data, ...prev]);
         setAddCustomerOpen(false);
         setNewCustomer({
           name: "",
@@ -193,7 +194,9 @@ const CustomersTab = () => {
           </div>
 
           {loading ? (
-            <div className="text-center py-8">Loading customers...</div>
+            <div className="text-center py-8 text-glamour-600 animate-pulse">
+              Loading customers...
+            </div>
           ) : (
             <div className="border rounded-md overflow-hidden">
               <Table>
@@ -226,18 +229,20 @@ const CustomersTab = () => {
                     </TableRow>
                   ) : (
                     currentCustomers.map((customer) => (
-                      <TableRow
-                        key={`customer-${customer.id}-${customer.created_at}`}
-                      >
+                      <TableRow key={`customer-${customer.id}`}>
                         <TableCell>{customer.id}</TableCell>
                         <TableCell className="font-medium">
                           <div className="flex items-center">
-                            {customer.gender === "female" && (
-                              <UserCircle className="h-4 w-4 mr-2 text-pink-500" />
-                            )}
-                            {customer.gender === "male" && (
-                              <UserCircle className="h-4 w-4 mr-2 text-blue-500" />
-                            )}
+                            <UserCircle
+                              className={`h-4 w-4 mr-2 ${
+                                customer.gender === "female"
+                                  ? "text-pink-500"
+                                  : customer.gender === "male"
+                                  ? "text-blue-500"
+                                  : "text-gray-500"
+                              }`}
+                            />
+
                             {customer.name}
                           </div>
                         </TableCell>
@@ -287,8 +292,11 @@ const CustomersTab = () => {
               <div className="text-sm text-muted-foreground">
                 Showing{" "}
                 {filteredCustomers.length === 0
-                  ? 0
-                  : (currentPage - 1) * pageSize + 1}{" "}
+                  ? "No entries"
+                  : `Showing ${(currentPage - 1) * pageSize + 1} to ${Math.min(
+                      currentPage * pageSize,
+                      filteredCustomers.length
+                    )} of ${filteredCustomers.length} entries`}{" "}
                 to {Math.min(currentPage * pageSize, filteredCustomers.length)}{" "}
                 of {filteredCustomers.length} entries
               </div>
@@ -358,36 +366,31 @@ const CustomersTab = () => {
                   }
                   className="grid grid-cols-3 gap-4 mt-1"
                 >
-                  <div className="flex items-center space-x-2 border rounded-md p-3 cursor-pointer hover:bg-glamour-50 transition-colors">
-                    <RadioGroupItem value="female" id="gender-female" />
-                    <Label
-                      htmlFor="gender-female"
-                      className="flex items-center cursor-pointer flex-1"
+                  {["female", "male", "other"].map((gender) => (
+                    <div
+                      key={gender}
+                      className="flex items-center space-x-2 border rounded-md p-3 cursor-pointer hover:bg-glamour-50 transition-colors"
                     >
-                      <UserCircle className="h-5 w-5 mr-2 text-pink-500" />
-                      <span>Female</span>
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 border rounded-md p-3 cursor-pointer hover:bg-glamour-50 transition-colors">
-                    <RadioGroupItem value="male" id="gender-male" />
-                    <Label
-                      htmlFor="gender-male"
-                      className="flex items-center cursor-pointer flex-1"
-                    >
-                      <UserCircle className="h-5 w-5 mr-2 text-blue-500" />
-                      <span>Male</span>
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 border rounded-md p-3 cursor-pointer hover:bg-glamour-50 transition-colors">
-                    <RadioGroupItem value="other" id="gender-other" />
-                    <Label
-                      htmlFor="gender-other"
-                      className="flex items-center cursor-pointer flex-1"
-                    >
-                      <UserCircle className="h-5 w-5 mr-2 text-gray-500" />
-                      <span>Other</span>
-                    </Label>
-                  </div>
+                      <RadioGroupItem value={gender} id={`gender-${gender}`} />
+                      <Label
+                        htmlFor={`gender-${gender}`}
+                        className="flex items-center cursor-pointer flex-1"
+                      >
+                        <UserCircle
+                          className={`h-5 w-5 mr-2 ${
+                            gender === "female"
+                              ? "text-pink-500"
+                              : gender === "male"
+                              ? "text-blue-500"
+                              : "text-gray-500"
+                          }`}
+                        />
+                        <span>
+                          {gender.charAt(0).toUpperCase() + gender.slice(1)}
+                        </span>
+                      </Label>
+                    </div>
+                  ))}
                 </RadioGroup>
               </div>
 
