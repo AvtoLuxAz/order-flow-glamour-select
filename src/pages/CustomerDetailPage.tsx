@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,10 +31,12 @@ import { customerService, appointmentService } from "@/services";
 // Add prop type
 type CustomerDetailPageProps = {
   customer?: Customer;
+  onCustomerUpdated?: () => void;
 };
 
 const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
   customer: customerProp,
+  onCustomerUpdated,
 }) => {
   const { customerId } = useParams();
   const [editMode, setEditMode] = useState(false);
@@ -66,7 +67,9 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
 
         // Fetch appointments for this customer
         try {
-          const response = await appointmentService.getByCustomerId(customerProp.id);
+          const response = await appointmentService.getByCustomerId(
+            customerProp.id
+          );
           if (response.data) {
             setAppointments(response.data);
           }
@@ -86,7 +89,8 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
             });
 
             // Fetch appointments for this customer
-            const appointmentsResponse = await appointmentService.getByCustomerId(customerId);
+            const appointmentsResponse =
+              await appointmentService.getByCustomerId(customerId);
             if (appointmentsResponse.data) {
               setAppointments(appointmentsResponse.data);
             }
@@ -115,6 +119,8 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
             title: "Customer updated",
             description: "Customer information has been updated successfully",
           });
+          // Call the callback if provided
+          onCustomerUpdated?.();
         }
       }
       setEditMode(false);
@@ -181,9 +187,10 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
   };
 
   // Filter appointments based on search term (order reference)
-  const filteredAppointments = appointments.filter(app => 
-    app.orderReference?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (`ORD-${app.id}`).toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredAppointments = appointments.filter(
+    (app) =>
+      app.orderReference?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `ORD-${app.id}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -314,9 +321,9 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
           <div className="mb-4">
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input 
-                placeholder="Search by order reference..." 
-                className="pl-10" 
+              <Input
+                placeholder="Search by order reference..."
+                className="pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -329,7 +336,9 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
 
           {filteredAppointments.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              {searchTerm ? "No appointments found matching your search" : "No appointments found for this customer"}
+              {searchTerm
+                ? "No appointments found matching your search"
+                : "No appointments found for this customer"}
             </div>
           ) : (
             <div className="space-y-6">
@@ -350,14 +359,12 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
                           >
                             {app.orderReference || `ORD-${app.id}`}
                           </Badge>
-                          <Badge
-                            className={getStatusBadgeColor(app.status)}
-                          >
+                          <Badge className={getStatusBadgeColor(app.status)}>
                             {app.status}
                           </Badge>
                           {getPaymentStatusBadge(app)}
                         </div>
-                        
+
                         <div className="flex flex-wrap gap-2 items-center text-gray-600 mt-2">
                           <div className="flex items-center">
                             <Calendar className="h-4 w-4 mr-1" />
@@ -370,14 +377,17 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
                             </span>
                           </div>
                           <div className="flex items-center">
-                            <span className="font-medium">Duration:</span> {app.duration || "60"} min
+                            <span className="font-medium">Duration:</span>{" "}
+                            {app.duration || "60"} min
                           </div>
                         </div>
-                        
+
                         <div className="mt-1 flex gap-4">
                           <div className="flex items-center">
                             <DollarSign className="h-4 w-4 mr-1" />
-                            <span className="font-medium">${app.totalAmount || 0}</span>
+                            <span className="font-medium">
+                              ${app.totalAmount || 0}
+                            </span>
                           </div>
                           {(app.remainingBalance > 0 ||
                             app.totalAmount > (app.amountPaid || 0)) && (
@@ -404,31 +414,34 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
                           </h5>
                           <div className="space-y-2 bg-gray-50 p-3 rounded-md">
                             {app.services && app.services.length > 0 ? (
-                              app.services.map((service: Service, idx: number) => (
-                                <div
-                                  key={idx}
-                                  className="flex justify-between items-center border-b last:border-b-0 pb-2 last:pb-0"
-                                >
-                                  <div>
+                              app.services.map(
+                                (service: Service, idx: number) => (
+                                  <div
+                                    key={idx}
+                                    className="flex justify-between items-center border-b last:border-b-0 pb-2 last:pb-0"
+                                  >
+                                    <div>
+                                      <div className="font-medium">
+                                        {service.name}
+                                      </div>
+                                      <div className="text-xs text-gray-500 flex items-center">
+                                        <Clock className="h-3 w-3 mr-1" />
+                                        {service.duration || "60"} min
+                                      </div>
+                                      <div className="text-xs text-gray-500 flex items-center mt-1">
+                                        <UserCircle className="h-3 w-3 mr-1" />
+                                        {app.serviceProviders?.find(
+                                          (provider) =>
+                                            provider.serviceId === service.id
+                                        )?.name || "No provider assigned"}
+                                      </div>
+                                    </div>
                                     <div className="font-medium">
-                                      {service.name}
-                                    </div>
-                                    <div className="text-xs text-gray-500 flex items-center">
-                                      <Clock className="h-3 w-3 mr-1" />
-                                      {service.duration || "60"} min
-                                    </div>
-                                    <div className="text-xs text-gray-500 flex items-center mt-1">
-                                      <UserCircle className="h-3 w-3 mr-1" />
-                                      {app.serviceProviders?.find(
-                                        (provider) => provider.serviceId === service.id
-                                      )?.name || "No provider assigned"}
+                                      ${service.price}
                                     </div>
                                   </div>
-                                  <div className="font-medium">
-                                    ${service.price}
-                                  </div>
-                                </div>
-                              ))
+                                )
+                              )
                             ) : (
                               <div className="flex justify-between items-center">
                                 <div>
@@ -454,7 +467,8 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
 
                         {/* Products section */}
                         {(app.products && app.products.length > 0) ||
-                        (app.selectedProducts && app.selectedProducts.length > 0) ? (
+                        (app.selectedProducts &&
+                          app.selectedProducts.length > 0) ? (
                           <div>
                             <h5 className="text-sm font-semibold mb-2 flex items-center">
                               <Package className="h-4 w-4 mr-1" /> Products
@@ -468,7 +482,9 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
                                   >
                                     <div>
                                       {typeof product === "string" ? (
-                                        <div className="font-medium">{product}</div>
+                                        <div className="font-medium">
+                                          {product}
+                                        </div>
                                       ) : (
                                         <>
                                           <div className="font-medium">
@@ -482,9 +498,12 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
                                         </>
                                       )}
                                     </div>
-                                    {typeof product !== "string" && product.price && (
-                                      <div className="font-medium">${product.price}</div>
-                                    )}
+                                    {typeof product !== "string" &&
+                                      product.price && (
+                                        <div className="font-medium">
+                                          ${product.price}
+                                        </div>
+                                      )}
                                   </div>
                                 )
                               )}
@@ -506,22 +525,17 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
                               {app.paymentMethod || "Cash"}
                             </div>
                             <div>
-                              <span className="font-medium">
-                                Total Amount:
-                              </span>{" "}
+                              <span className="font-medium">Total Amount:</span>{" "}
                               ${app.totalAmount || 0}
                             </div>
                             <div>
-                              <span className="font-medium">
-                                Amount Paid:
-                              </span>{" "}
+                              <span className="font-medium">Amount Paid:</span>{" "}
                               ${app.amountPaid || 0}
                             </div>
                             {(app.remainingBalance > 0 ||
                               app.totalAmount > (app.amountPaid || 0)) && (
                               <div className="text-red-600">
-                                <span className="font-medium">Balance:</span>{" "}
-                                $
+                                <span className="font-medium">Balance:</span> $
                                 {app.remainingBalance ||
                                   app.totalAmount - (app.amountPaid || 0)}
                               </div>

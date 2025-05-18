@@ -1,22 +1,20 @@
-
 // Product model and related types
 export interface Product {
-  id?: number;
+  id: number;
   name: string;
-  price?: number;
-  quantity?: number;
-  description?: string;
-  imageUrl?: string;
-  categoryId?: number;
-  isServiceRelated?: boolean;
+  description: string;
+  price: number;
+  image_url?: string;
+  stock_quantity: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ProductFormData {
   name: string;
+  description: string;
   price: number;
-  description?: string;
-  stock?: number;
-  category?: string;
-  imageUrl?: string;
-  isServiceRelated?: boolean;
+  image_url?: string;
+  stock_quantity: number;
 }

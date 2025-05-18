@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -26,9 +25,10 @@ import CheckoutFlow from "@/components/CheckoutFlow";
 import { OrderProvider } from "@/context/OrderContext";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { API } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
-import { Customer } from "@/models/customer.model";
+import { Customer, CustomerFormData } from "@/models/customer.model";
+import { customerService } from "@/services";
+import { logger } from "@/services/logger";
 
 const CustomersTab = () => {
   const { toast } = useToast();
@@ -45,33 +45,44 @@ const CustomersTab = () => {
   const pageSize = 10;
 
   // New customer form state
-  const [newCustomer, setNewCustomer] = useState({
+  const [newCustomer, setNewCustomer] = useState<CustomerFormData>({
     name: "",
     email: "",
     phone: "",
-    gender: "female" as "female" | "male" | "other",
+    gender: "female",
   });
 
-  useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        setLoading(true);
-        const { data } = await API.customers.list();
-        setCustomers(data || []);
-      } catch (error) {
-        console.error("Failed to load customers:", error);
-        toast({
-          title: "Error loading customers",
-          description: "Please try again later",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      const response = await customerService.getAll();
+      if (response.data) {
+        setCustomers(response.data);
+      } else if (response.error) {
+        throw new Error(response.error);
       }
-    };
+    } catch (error) {
+      console.error("Failed to load customers:", error);
+      toast({
+        title: "Error loading customers",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCustomers();
   }, [toast]);
+
+  const handleDrawerClose = async (open: boolean) => {
+    if (!open) {
+      await fetchCustomers();
+    }
+    setDrawerOpen(open);
+  };
 
   // Filter customers based on search term
   const filteredCustomers = customers.filter(
@@ -105,26 +116,47 @@ const CustomersTab = () => {
     }
 
     try {
-      const { data } = await API.customers.create(newCustomer);
-      if (data) {
-        setCustomers([data as Customer, ...customers]);
+      logger.debug("Attempting to create new customer", {
+        customerData: newCustomer,
+      });
+
+      const response = await customerService.create(newCustomer);
+
+      if (response.data) {
+        logger.info("Customer created successfully", {
+          customerId: response.data.id,
+          customerName: response.data.name,
+        });
+
+        setCustomers([response.data, ...customers]);
         setAddCustomerOpen(false);
-        setNewCustomer({ name: "", email: "", phone: "", gender: "female" });
+        setNewCustomer({
+          name: "",
+          email: "",
+          phone: "",
+          gender: "female",
+        });
 
         toast({
           title: "Customer added",
-          description: `${data.name} has been added successfully`,
+          description: `${response.data.name} has been added successfully`,
         });
 
         // Automatically open appointment drawer for the new customer
-        setSelectedCustomerForAppointment(data as Customer);
+        setSelectedCustomerForAppointment(response.data);
         setAddAppointmentOpen(true);
+      } else if (response.error) {
+        throw new Error(response.error);
       }
     } catch (error) {
-      console.error("Failed to add customer:", error);
+      logger.error("Failed to add customer", error as Error, {
+        customerData: newCustomer,
+      });
+
       toast({
         title: "Error adding customer",
-        description: "Please try again",
+        description:
+          error instanceof Error ? error.message : "Please try again",
         variant: "destructive",
       });
     }
@@ -194,7 +226,9 @@ const CustomersTab = () => {
                     </TableRow>
                   ) : (
                     currentCustomers.map((customer) => (
-                      <TableRow key={customer.id}>
+                      <TableRow
+                        key={`customer-${customer.id}-${customer.created_at}`}
+                      >
                         <TableCell>{customer.id}</TableCell>
                         <TableCell className="font-medium">
                           <div className="flex items-center">
@@ -285,7 +319,7 @@ const CustomersTab = () => {
         {/* Customer Details Drawer */}
         <DetailDrawer
           open={drawerOpen}
-          onOpenChange={setDrawerOpen}
+          onOpenChange={handleDrawerClose}
           title="Customer Details"
         >
           {viewCustomer && <CustomerDetailPage customer={viewCustomer} />}

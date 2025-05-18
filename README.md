@@ -1,73 +1,121 @@
-# Welcome to your Lovable project
+# Glamour Studio - Order Flow Management System
 
-## Project info
+A modern, feature-rich order flow management system for beauty and wellness businesses.
 
-**URL**: https://lovable.dev/projects/80edffc9-1f02-4aa0-8b7b-4534c38661f5
+## Features
 
-## How can I edit this code?
+- 🎨 Modern UI with brand colors
+- 📱 Responsive design
+- 🔄 Real-time updates
+- 📊 Comprehensive reporting
+- 💰 Payment tracking
+- 👥 Customer management
+- 📅 Appointment scheduling
+- 🛍️ Product and service management
+- 👨‍💼 Staff management and payroll
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- React + TypeScript
+- Vite
+- Tailwind CSS
+- Shadcn UI
+- Supabase (Backend)
+- React Query
+- React Router
+- React Hook Form
+- Zod (Validation)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/80edffc9-1f02-4aa0-8b7b-4534c38661f5) and start prompting.
+## Prerequisites
 
-Changes made via Lovable will be committed automatically to this repo.
+- Node.js 18+
+- npm or yarn
+- Supabase account
 
-**Use your preferred IDE**
+## Environment Setup
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. Create a `.env` file in the root directory with the following variables:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_APP_NAME=Glamour Studio
+VITE_APP_URL=http://localhost:5173
 ```
 
-**Edit a file directly in GitHub**
+2. Set up your Supabase project:
+   - Create a new project in Supabase
+   - Run the migrations in `supabase/migrations/20240320000000_initial_schema.sql`
+   - Enable Row Level Security (RLS) policies
+   - Set up storage buckets for images
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Installation
 
-**Use GitHub Codespaces**
+1. Clone the repository:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+git clone https://github.com/your-org/glamour-studio.git
+cd glamour-studio
+```
 
-## What technologies are used for this project?
+2. Install dependencies:
 
-This project is built with:
+```bash
+npm install
+# or
+yarn install
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+3. Start the development server:
 
-## How can I deploy this project?
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-Simply open [Lovable](https://lovable.dev/projects/80edffc9-1f02-4aa0-8b7b-4534c38661f5) and click on Share -> Publish.
+## Project Structure
 
-## Can I connect a custom domain to my Lovable project?
+```
+/src
+  /features           # Feature-based modules
+    /customers       # Customer management
+    /appointments    # Appointment scheduling
+    /services        # Service management
+    /products        # Product management
+    /staff          # Staff management
+    /cash           # Payment tracking
+    /customerFlow   # Customer flow management
+  /shared            # Shared components and utilities
+    /components     # Reusable components
+    /utils          # Utility functions
+    /hooks          # Custom React hooks
+  /lib              # Core libraries and configurations
+    /supabase.ts    # Supabase client
+    /database.types.ts # Database types
+```
 
-Yes, you can!
+## Database Schema
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+The application uses the following main tables:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- customers
+- appointments
+- services
+- products
+- staff
+- payments
+- salary_transactions
+- work_logs
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

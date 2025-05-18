@@ -1,95 +1,113 @@
+import { supabase } from "@/lib/supabase";
+import { ApiResponse } from "@/models/types";
+import { Product } from "@/models/product.model";
 
-import { ApiService } from './api.service';
-import { Product, ProductFormData } from '@/models/product.model';
-import { ApiResponse } from '@/models/types';
-import { config } from '@/config/env';
-import { mockProducts } from '@/lib/mock-data';
-
-export class ProductService extends ApiService {
-  // Get all products
+export class ProductService {
   async getAll(): Promise<ApiResponse<Product[]>> {
-    if (config.usesMockData) {
-      await new Promise(resolve => setTimeout(resolve, 250));
-      return { data: [...mockProducts] };
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .order("name");
+
+    if (error) {
+      return { error: error.message };
     }
-    
-    return this.get<Product[]>('/products');
+
+    return { data: data as Product[] };
   }
-  
-  // Get products related to a service
-  async getByServiceId(serviceId: number | string): Promise<ApiResponse<Product[]>> {
-    if (config.usesMockData) {
-      await new Promise(resolve => setTimeout(resolve, 250));
-      // Filter products that are marked as service-related
-      const products = mockProducts.filter(p => p.isServiceRelated);
-      return { data: [...products] };
+
+  async getById(id: number): Promise<ApiResponse<Product>> {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      return { error: error.message };
     }
-    
-    return this.get<Product[]>(`/services/${serviceId}/products`);
+
+    return { data: data as Product };
   }
-  
-  // Get a single product by id
-  async getById(id: number | string): Promise<ApiResponse<Product>> {
-    if (config.usesMockData) {
-      await new Promise(resolve => setTimeout(resolve, 200));
-      const product = mockProducts.find(p => p.id === Number(id));
-      return { data: product ? {...product} : undefined, error: product ? undefined : 'Product not found' };
+
+  async create(
+    product: Omit<Product, "id" | "created_at" | "updated_at">
+  ): Promise<ApiResponse<Product>> {
+    const { data, error } = await supabase
+      .from("products")
+      .insert(product)
+      .select()
+      .single();
+
+    if (error) {
+      return { error: error.message };
     }
-    
-    return this.get<Product>(`/products/${id}`);
+
+    return { data: data as Product };
   }
-  
-  // Create a new product
-  async create(data: ProductFormData): Promise<ApiResponse<Product>> {
-    if (config.usesMockData) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const newId = Math.max(...mockProducts.map(p => p.id || 0), 0) + 1;
-      const newProduct = { 
-        ...data, 
-        id: newId,
-        quantity: data.stock
-      };
-      mockProducts.push(newProduct as Product);
-      return { data: newProduct as Product };
+
+  async update(
+    id: number,
+    product: Partial<Product>
+  ): Promise<ApiResponse<Product>> {
+    const { data, error } = await supabase
+      .from("products")
+      .update(product)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      return { error: error.message };
     }
-    
-    return this.post<Product>('/products', data);
+
+    return { data: data as Product };
   }
-  
-  // Update an existing product
-  async update(id: number | string, data: Partial<ProductFormData>): Promise<ApiResponse<Product>> {
-    if (config.usesMockData) {
-      await new Promise(resolve => setTimeout(resolve, 400));
-      const index = mockProducts.findIndex(p => p.id === Number(id));
-      if (index >= 0) {
-        mockProducts[index] = { 
-          ...mockProducts[index], 
-          ...data,
-          quantity: data.stock !== undefined ? data.stock : mockProducts[index].quantity
-        };
-        return { data: mockProducts[index] };
-      }
-      return { error: 'Product not found' };
+
+  async delete(id: number): Promise<ApiResponse<void>> {
+    const { error } = await supabase
+      .from("products")
+      .update({ is_active: false })
+      .eq("id", id);
+
+    if (error) {
+      return { error: error.message };
     }
-    
-    return this.put<Product>(`/products/${id}`, data);
+
+    return { data: undefined };
   }
-  
-  // Delete a product
-  async delete(id: number | string): Promise<ApiResponse<boolean>> {
-    if (config.usesMockData) {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const index = mockProducts.findIndex(p => p.id === Number(id));
-      if (index >= 0) {
-        mockProducts.splice(index, 1);
-        return { data: true };
-      }
-      return { error: 'Product not found' };
+
+  async updateStock(
+    id: number,
+    quantity: number
+  ): Promise<ApiResponse<Product>> {
+    const { data, error } = await supabase
+      .from("products")
+      .update({ stock_quantity: quantity })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      return { error: error.message };
     }
-    
-    return this.delete<boolean>(`/products/${id}`);
+
+    return { data: data as Product };
+  }
+
+  async getRelatedServices(productId: number): Promise<ApiResponse<number[]>> {
+    const { data, error } = await supabase
+      .from("service_products")
+      .select("service_id")
+      .eq("product_id", productId);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return { data: data.map((item) => item.service_id) };
   }
 }
 
-// Create a singleton instance
 export const productService = new ProductService();

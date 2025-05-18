@@ -20,6 +20,7 @@ import {
   Percent,
   Scissors,
   CalendarPlus,
+  Info,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import DetailDrawer from "@/components/common/DetailDrawer";
@@ -104,6 +105,8 @@ const StaffTab = () => {
   const { toast, dismiss } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [staffToDelete, setStaffToDelete] = useState<number | null>(null);
+  const [paymentInfoOpen, setPaymentInfoOpen] = useState(false);
+  const [paymentInfoStaff, setPaymentInfoStaff] = useState<Staff | null>(null);
 
   // Form state
   const [staffForm, setStaffForm] = useState<Omit<Staff, "id">>({
@@ -283,6 +286,18 @@ const StaffTab = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        aria-label="Maliyyə məlumatı"
+                        onClick={() => {
+                          setPaymentInfoStaff(s);
+                          setPaymentInfoOpen(true);
+                        }}
+                      >
+                        <Info className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -481,6 +496,38 @@ const StaffTab = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Info Drawer - layihənin strukturuna uyğun */}
+      <DetailDrawer
+        open={paymentInfoOpen}
+        onOpenChange={setPaymentInfoOpen}
+        title={
+          paymentInfoStaff
+            ? `${paymentInfoStaff.fullname} - Maliyyə Məlumatı`
+            : "Maliyyə Məlumatı"
+        }
+      >
+        {paymentInfoStaff && (
+          <div className="space-y-4">
+            <div>
+              <span className="font-semibold">Baza maaşı:</span>{" "}
+              <span>{paymentInfoStaff.minSalary} ₼</span>
+            </div>
+            <div>
+              <span className="font-semibold">Komissiya faizi:</span>{" "}
+              <span>{paymentInfoStaff.commissionPercent}%</span>
+            </div>
+            <div>
+              <span className="font-semibold">Xidmətlər:</span>
+              <ul className="list-disc ml-6">
+                {paymentInfoStaff.services.map((service, idx) => (
+                  <li key={idx}>{service}</li>
+                ))}
+              </ul>
+            </div>
+            {/* Əlavə maliyyə məlumatları, ödənişlər və s. əlavə oluna bilər */}
+          </div>
+        )}
+      </DetailDrawer>
     </div>
   );
 };

@@ -1,0 +1,17 @@
+
+# Environment Configuration
+# Copy this file to .env.local, .env.test, or .env.production depending on your environment
+
+# Current environment: local, test, or production
+VITE_APP_ENV=local
+
+# API Configuration
+VITE_API_URL=https://api.example.com
+VITE_API_KEY=your_api_key_here
+
+# Feature Flags
+VITE_ENABLE_ANALYTICS=false
+VITE_DEBUG_MODE=true
+
+VITE_SUPABASE_URL=https://rpomumfcmmzbbnritnux.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwb211bWZjbW16YmJucml0bnV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY5MDkxOTMsImV4cCI6MjA2MjQ4NTE5M30.q7nW5yidSVYYPI9X8sXcp23WcUnKS_B7txYzfFaRH44

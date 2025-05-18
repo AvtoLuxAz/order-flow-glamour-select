@@ -1,78 +1,95 @@
+import { supabase } from "@/lib/supabase";
+import { ApiResponse } from "@/models/types";
+import { Service } from "@/models/service.model";
 
-import { ApiService } from './api.service';
-import { Service, ServiceFormData } from '@/models/service.model';
-import { ApiResponse } from '@/models/types';
-import { config } from '@/config/env';
-import { mockServices } from '@/lib/mock-data';
-
-export class ServiceService extends ApiService {
-  // Get all services
+export class ServiceService {
   async getAll(): Promise<ApiResponse<Service[]>> {
-    if (config.usesMockData) {
-      await new Promise(resolve => setTimeout(resolve, 250));
-      return { data: [...mockServices] };
+    const { data, error } = await supabase
+      .from("services")
+      .select("*")
+      .eq("is_active", true)
+      .order("name");
+
+    if (error) {
+      return { error: error.message };
     }
-    
-    return this.get<Service[]>('/services');
-  }
-  
-  // Get a single service by id
-  async getById(id: number | string): Promise<ApiResponse<Service>> {
-    if (config.usesMockData) {
-      await new Promise(resolve => setTimeout(resolve, 200));
-      const service = mockServices.find(s => s.id === Number(id));
-      return { data: service ? {...service} : undefined, error: service ? undefined : 'Service not found' };
-    }
-    
-    return this.get<Service>(`/services/${id}`);
+
+    return { data: data as Service[] };
   }
 
-  // Create a new service
-  async create(data: ServiceFormData): Promise<ApiResponse<Service>> {
-    if (config.usesMockData) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const newId = Math.max(...mockServices.map(s => s.id), 0) + 1;
-      const newService = { 
-        ...data, 
-        id: newId 
-      };
-      mockServices.push(newService as Service);
-      return { data: newService as Service };
+  async getById(id: number): Promise<ApiResponse<Service>> {
+    const { data, error } = await supabase
+      .from("services")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      return { error: error.message };
     }
-    
-    return this.post<Service>('/services', data);
+
+    return { data: data as Service };
   }
-  
-  // Update an existing service
-  async update(id: number | string, data: Partial<ServiceFormData>): Promise<ApiResponse<Service>> {
-    if (config.usesMockData) {
-      await new Promise(resolve => setTimeout(resolve, 400));
-      const index = mockServices.findIndex(s => s.id === Number(id));
-      if (index >= 0) {
-        mockServices[index] = { ...mockServices[index], ...data };
-        return { data: mockServices[index] };
-      }
-      return { error: 'Service not found' };
+
+  async create(
+    service: Omit<Service, "id" | "created_at" | "updated_at">
+  ): Promise<ApiResponse<Service>> {
+    const { data, error } = await supabase
+      .from("services")
+      .insert(service)
+      .select()
+      .single();
+
+    if (error) {
+      return { error: error.message };
     }
-    
-    return this.put<Service>(`/services/${id}`, data);
+
+    return { data: data as Service };
   }
-  
-  // Delete a service
-  async delete(id: number | string): Promise<ApiResponse<boolean>> {
-    if (config.usesMockData) {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const index = mockServices.findIndex(s => s.id === Number(id));
-      if (index >= 0) {
-        mockServices.splice(index, 1);
-        return { data: true };
-      }
-      return { error: 'Service not found' };
+
+  async update(
+    id: number,
+    service: Partial<Service>
+  ): Promise<ApiResponse<Service>> {
+    const { data, error } = await supabase
+      .from("services")
+      .update(service)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      return { error: error.message };
     }
-    
-    return this.delete<boolean>(`/services/${id}`);
+
+    return { data: data as Service };
+  }
+
+  async delete(id: number): Promise<ApiResponse<void>> {
+    const { error } = await supabase
+      .from("services")
+      .update({ is_active: false })
+      .eq("id", id);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return { data: undefined };
+  }
+
+  async getRelatedProducts(serviceId: number): Promise<ApiResponse<number[]>> {
+    const { data, error } = await supabase
+      .from("service_products")
+      .select("product_id")
+      .eq("service_id", serviceId);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return { data: data.map((item) => item.product_id) };
   }
 }
 
-// Create a singleton instance
 export const serviceService = new ServiceService();
