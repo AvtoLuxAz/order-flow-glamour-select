@@ -208,61 +208,61 @@ VALUES (
         'Əli Məmmədov',
         'ali@example.com',
         '+994501234567',
-        'Kişi'
+        'male'
     ),
     (
         'Ayşə Əliyeva',
         'ayse@example.com',
         '+994502345678',
-        'Qadın'
+        'female'
     ),
     (
         'Məhəmməd Hüseynov',
         'mammad@example.com',
         '+994503456789',
-        'Kişi'
+        'male'
     ),
     (
         'Zeynəb Qurbanova',
         'zeyneb@example.com',
         '+994504567890',
-        'Qadın'
+        'female'
     ),
     (
         'Rəşad Əliyev',
         'rashad@example.com',
         '+994505678901',
-        'Kişi'
+        'male'
     ),
     (
         'Leyla Məmmədova',
         'leyla@example.com',
         '+994506789012',
-        'Qadın'
+        'female'
     ),
     (
         'Orxan Hüseynov',
         'orxan@example.com',
         '+994507890123',
-        'Kişi'
+        'male'
     ),
     (
         'Aynur Qurbanova',
         'aynur@example.com',
         '+994508901234',
-        'Qadın'
+        'female'
     ),
     (
         'Elmar Əliyev',
         'elmar@example.com',
         '+994509012345',
-        'Kişi'
+        'male'
     ),
     (
         'Gülşən Məmmədova',
         'gulshan@example.com',
         '+994500123456',
-        'Qadın'
+        'female'
     );
 -- Insert mock data into staff
 INSERT INTO staff (name, position, specializations)

@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import type React from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Pencil,
   Clock,
@@ -12,7 +14,6 @@ import {
   Calendar,
   Package,
   DollarSign,
-  ChevronDown,
   Search,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
@@ -22,10 +23,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Customer, CustomerFormData } from "@/models/customer.model";
-import { Appointment } from "@/models/appointment.model";
-import { Service } from "@/models/service.model";
-import { Product } from "@/models/product.model";
+import type { Customer, CustomerFormData } from "@/models/customer.model";
+import type { Appointment } from "@/models/appointment.model";
+import type { Service } from "@/models/service.model";
+import type { Product } from "@/models/product.model";
 import { customerService, appointmentService } from "@/services";
 
 // Add prop type
@@ -52,34 +53,81 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const isMounted = useRef(true);
+  const isLoadingData = useRef(false);
+  const [appointmentsLoaded, setAppointmentsLoaded] = useState(false);
+
+  const fetchAppointments = useCallback(async (id: string | number) => {
+    if (!isMounted.current || isLoadingData.current) return;
+
+    isLoadingData.current = true;
+    try {
+      console.log("Manual fetch appointments for:", id);
+      const response = await appointmentService.getByCustomerId(id);
+      if (response.data && isMounted.current) {
+        setAppointments(response.data);
+        setAppointmentsLoaded(true);
+      }
+    } catch (error) {
+      console.error("Failed to load appointments:", error);
+    } finally {
+      isLoadingData.current = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     // If we have a customer prop, use it, otherwise fetch from API
     const initCustomer = async () => {
+      if (!isMounted.current) return;
+      if (isLoadingData.current) return; // Prevent multiple simultaneous calls
+
+      // Skip if appointments are already loaded for this customer
+      if (
+        appointmentsLoaded &&
+        ((customerProp && appointments.length > 0) ||
+          (customerId && appointments.length > 0))
+      ) {
+        return;
+      }
+
+      isLoadingData.current = true;
+      setLoading(true);
+
       if (customerProp) {
-        setCustomer(customerProp);
-        setEditForm({
-          name: customerProp.name,
-          email: customerProp.email,
-          phone: customerProp.phone,
-          gender: customerProp.gender || "",
-        });
+        if (isMounted.current) {
+          setCustomer(customerProp);
+          setEditForm({
+            name: customerProp.name,
+            email: customerProp.email,
+            phone: customerProp.phone,
+            gender: customerProp.gender || "",
+          });
+        }
 
         // Fetch appointments for this customer
         try {
+          console.log("Fetching appointments for customer:", customerProp.id);
           const response = await appointmentService.getByCustomerId(
             customerProp.id
           );
-          if (response.data) {
+          if (response.data && isMounted.current) {
             setAppointments(response.data);
+            setAppointmentsLoaded(true);
           }
         } catch (error) {
           console.error("Failed to load appointments:", error);
         }
       } else if (customerId) {
         try {
+          console.log("Fetching customer:", customerId);
           const response = await customerService.getById(customerId);
-          if (response.data) {
+          if (response.data && isMounted.current) {
             setCustomer(response.data);
             setEditForm({
               name: response.data.name,
@@ -89,21 +137,32 @@ const CustomerDetailPage: React.FC<CustomerDetailPageProps> = ({
             });
 
             // Fetch appointments for this customer
+            console.log("Fetching appointments for customerId:", customerId);
             const appointmentsResponse =
               await appointmentService.getByCustomerId(customerId);
-            if (appointmentsResponse.data) {
+            if (appointmentsResponse.data && isMounted.current) {
               setAppointments(appointmentsResponse.data);
+              setAppointmentsLoaded(true);
             }
           }
         } catch (error) {
           console.error("Failed to load customer:", error);
         }
       }
-      setLoading(false);
+
+      if (isMounted.current) {
+        setLoading(false);
+      }
+      isLoadingData.current = false;
     };
 
     initCustomer();
-  }, [customerProp, customerId]);
+
+    // Add a cleanup function to handle component unmounting
+    return () => {
+      // This prevents state updates after the component unmounts
+    };
+  }, [customerProp, customerId, appointmentsLoaded, appointments.length]);
 
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
