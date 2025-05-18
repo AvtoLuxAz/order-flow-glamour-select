@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { serviceService } from "@/services/service.service";
 import { productService } from "@/services/product.service";
 import { appointmentService } from "@/services/appointment.service";
+import { supabase } from "../lib/supabase";
 import {
   Select,
   SelectContent,
@@ -136,7 +137,17 @@ const ServiceSelection = () => {
 
     fetchData();
   }, [orderState.serviceProviders]);
-
+  useEffect(() => {
+    const fetchStaff = async () => {
+      const { data, error } = await supabase.from("staff").select("*");
+      if (error) {
+        console.error("Error fetching staff:", error);
+      } else {
+        setStaff(data);
+      }
+    };
+    fetchStaff();
+  }, []);
   useEffect(() => {
     const fetchRelatedProducts = async () => {
       try {
