@@ -1,0 +1,10 @@
+{
+  "nav.home": "Ana Səhifə",
+  "nav.services": "Xidmətlər",
+  "nav.about": "Haqqımızda",
+  "button.submit": "Göndər",
+  "greeting": "Salam, {name}!",
+  "page.title.settings": "Parametrlər",
+  "error.network": "Şəbəkə xətası baş verdi. Zəhmət olmasa, yenidən cəhd edin.",
+  "common.loading": "Yüklənir..."
+}

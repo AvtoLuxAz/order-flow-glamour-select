@@ -1,0 +1,10 @@
+{
+  "nav.home": "Главная",
+  "nav.services": "Сервисы",
+  "nav.about": "О нас",
+  "button.submit": "Отправить",
+  "greeting": "Привет, {name}!",
+  "page.title.settings": "Настройки",
+  "error.network": "Произошла сетевая ошибка. Пожалуйста, попробуйте еще раз.",
+  "common.loading": "Загрузка..."
+}

@@ -1,0 +1,10 @@
+{
+  "nav.home": "Bosh Sahifa",
+  "nav.services": "Xizmatlar",
+  "nav.about": "Biz Haqimizda",
+  "button.submit": "Yuborish",
+  "greeting": "Salom, {name}!",
+  "page.title.settings": "Sozlamalar",
+  "error.network": "Tarmoqda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.",
+  "common.loading": "Yuklanmoqda..."
+}

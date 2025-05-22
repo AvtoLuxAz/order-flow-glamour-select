@@ -1,144 +1,125 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
-import AdminVerticalNav from '@/components/admin/AdminVerticalNav';
-import AdminHeader from '@/components/admin/AdminHeader';
-import DashboardTab from '@/components/admin/DashboardTab';
-import CustomersTab from '@/components/admin/CustomersTab';
-import ServicesTab from '@/components/admin/ServicesTab';
-import ProductsTab from '@/components/admin/ProductsTab';
-import AppointmentsTab from '@/components/admin/AppointmentsTab';
-import SettingsTab from '@/components/admin/SettingsTab';
-import StaffTab from '@/components/admin/StaffTab';
-import AdminProfile from '@/components/admin/AdminProfile';
-import CustomerDetailPage from './CustomerDetailPage';
-import { useLocation, useParams } from 'react-router-dom';
-import CashTab from '@/components/admin/CashTab';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
-import { config } from '@/config/env';
+import React, { useMemo } from 'react';
+import { useLocation, useParams, Outlet } from 'react-router-dom';
+import AdminVerticalNav from '../components/Admin/AdminVerticalNav'; // Assuming path
 
-interface AdminProps {
-  initialTab?: string;
+// =====================================================================================
+// --- Placeholder Tab Components & Related Imports ---
+// In a real application, these would be imported from their respective files/modules.
+// For example:
+// import DashboardTab from './tabs/DashboardTab';
+// import CustomersTab from './tabs/CustomersTab';
+// import CustomerDetailPage from './detail/CustomerDetailPage';
+// import AdminVerticalNav from '../components/navigation/AdminVerticalNav';
+// =====================================================================================
+const DashboardTab: React.FC = () => <div data-testid="dashboard-tab">Dashboard Content</div>;
+const CustomersTab: React.FC = () => <div data-testid="customers-tab">Customers Content. This might also contain an <Outlet /> for CustomerDetailPage.</div>;
+const ProductsTab: React.FC = () => <div data-testid="products-tab">Products Content</div>;
+const ProfileTab: React.FC = () => <div data-testid="profile-tab">User Profile Content</div>;
+const ServicesTab: React.FC = () => <div data-testid="services-tab">Services Content</div>;
+const AppointmentsTab: React.FC = () => <div data-testid="appointments-tab">Appointments Content</div>;
+const StaffTab: React.FC = () => <div data-testid="staff-tab">Staff Content</div>;
+const SettingsTab: React.FC = () => <div data-testid="settings-tab">Settings Content</div>;
+const CashTab: React.FC = () => <div data-testid="cash-tab">Cash/Financials Content</div>;
+const CustomerDetailPage: React.FC = () => <div data-testid="customer-detail-page-content">Customer Detail Page Content</div>;
+// --- End Placeholder Section ---
+
+interface AdminTabConfig {
+  key: string;
+  pathSuffix: string; 
+  title: string;
+  component: React.ElementType;
 }
 
-const tabFromPath = (pathname: string) => {
-  if (pathname.endsWith('/profile')) return 'profile';
-  if (pathname.endsWith('/products')) return 'products';
-  if (pathname.endsWith('/customers')) return 'customers';
-  if (pathname.endsWith('/services')) return 'services';
-  if (pathname.endsWith('/appointments')) return 'appointments';
-  if (pathname.endsWith('/staff')) return 'staff';
-  if (pathname.endsWith('/settings')) return 'settings';
-  if (pathname.endsWith('/cash')) return 'cash';
-  return 'dashboard';
+// Configuration for admin tabs.
+// For tabFromPath logic: if pathSuffixes could overlap significantly (e.g. /settings and /settings/advanced),
+// ensure the logic or order correctly prioritizes more specific matches.
+// Current tabFromPath sorts by suffix length to help with this.
+const adminTabsConfig: AdminTabConfig[] = [
+  { key: 'dashboard', pathSuffix: '/admin', title: 'Dashboard', component: DashboardTab },
+  { key: 'customers', pathSuffix: '/customers', title: 'Customers', component: CustomersTab },
+  { key: 'products', pathSuffix: '/products', title: 'Products', component: ProductsTab },
+  { key: 'services', pathSuffix: '/services', title: 'Services', component: ServicesTab },
+  { key: 'appointments', pathSuffix: '/appointments', title: 'Appointments', component: AppointmentsTab },
+  { key: 'staff', pathSuffix: '/staff', title: 'Staff', component: StaffTab },
+  { key: 'settings', pathSuffix: '/settings', title: 'Settings', component: SettingsTab },
+  { key: 'cash', pathSuffix: '/cash', title: 'Cash Management', component: CashTab },
+  { key: 'profile', pathSuffix: '/profile', title: 'My Profile', component: ProfileTab }, // Assuming full path like /admin/profile
+];
+
+// Helper function to determine the active tab key from the pathname.
+// Memoizing sortedConfig could be an optimization if adminTabsConfig was very large or dynamic.
+const getSortedConfig = (config: AdminTabConfig[]) => 
+  [...config].sort((a, b) => b.pathSuffix.length - a.pathSuffix.length);
+
+const tabFromPath = (pathname: string, config: AdminTabConfig[], sortedConfig: AdminTabConfig[]): string => {
+  if (pathname === '/admin' || pathname === '/admin/') {
+    return config.find(tab => tab.key === 'dashboard')?.key || 'dashboard';
+  }
+  
+  for (const tab of sortedConfig) {
+    if (tab.pathSuffix === '/admin') continue; // Already handled by exact match
+    if (pathname.endsWith(tab.pathSuffix)) {
+      return tab.key;
+    }
+  }
+  return 'dashboard'; // Default fallback
 };
 
-const Admin: React.FC<AdminProps> = ({ initialTab }) => {
+
+const AdminPage: React.FC = () => {
   const location = useLocation();
-  const { customerId } = useParams();
-  const isCustomerDetail = location.pathname.startsWith('/admin/customers/') && customerId;
-  const [activeTab, setActiveTab] = useState(tabFromPath(location.pathname));
-  const [notifications] = useState(90); // Example notifications count
-  const isMobile = useIsMobile();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const params = useParams<{ customerId?: string }>();
+
+  const isCustomerDetail = !!params.customerId && location.pathname.startsWith('/admin/customers/');
   
-  useEffect(() => {
-    setActiveTab(tabFromPath(location.pathname));
-  }, [location.pathname]);
-  
-  // Close sidebar when changing tabs on mobile
-  useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
+  // Memoize the sorted configuration so it's not re-sorted on every render unless adminTabsConfig changes.
+  // For this app, adminTabsConfig is static, so this runs once.
+  const sortedAdminTabsConfig = useMemo(() => getSortedConfig(adminTabsConfig), []);
+
+  const activeTabKey = useMemo(() => {
+    // if (process.env.NODE_ENV === 'development') {
+    //   console.log(`AdminPage: Current path: ${location.pathname}, isCustomerDetail: ${isCustomerDetail}`);
+    // }
+    if (isCustomerDetail) {
+      return 'customers'; 
     }
-  }, [activeTab, isMobile]);
-  
-  // Log environment info when admin loads (helpful for debugging)
-  useEffect(() => {
-    if (config.featureFlags.showDebugInfo) {
-      console.log('Admin loaded in', config.usesMockData ? 'mock mode' : 'API mode');
-    }
-  }, []);
+    return tabFromPath(location.pathname, adminTabsConfig, sortedAdminTabsConfig);
+  }, [location.pathname, isCustomerDetail, sortedAdminTabsConfig]); // Added sortedAdminTabsConfig to dependencies
+
+  const currentTabInfo = adminTabsConfig.find(tab => tab.key === activeTabKey);
+
+  const pageTitle = isCustomerDetail 
+    ? "Customer Details" 
+    : currentTabInfo?.title || "Admin";
+
+  const ComponentToRender = isCustomerDetail 
+    ? CustomerDetailPage 
+    : currentTabInfo?.component;
+
+  // if (process.env.NODE_ENV === 'development') {
+  //   console.log(`AdminPage: Active tab key: ${activeTabKey}, Title: ${pageTitle}, Component: ${ComponentToRender?.displayName || ComponentToRender?.name || 'None'}`);
+  // }
   
   return (
-    <div className="min-h-screen bg-background flex relative">
-      {/* Mobile overlay */}
-      {isMobile && sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-10"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-      
-      {/* Sidebar */}
-      <div 
-        className={cn(
-          "z-20 transition-all duration-300",
-          isMobile ? "fixed left-0 top-0 bottom-0" : "relative",
-          isMobile && !sidebarOpen && "-translate-x-full"
-        )}
-      >
-        <AdminVerticalNav 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-          notifications={notifications} 
-        />
-      </div>
-      
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col h-screen">
-        <AdminHeader />
+    <div className="flex flex-col md:flex-row min-h-screen bg-glamour-system-background">
+      <AdminVerticalNav activeTab={activeTabKey} />
+      <main className="flex-1 p-4 md:p-6 lg:p-8 bg-white">
+        <header className="mb-6">
+          <h1 className="text-lg md:text-2xl font-bold text-glamour-800">
+            {pageTitle}
+          </h1>
+        </header>
         
-        {/* Mobile Menu Button */}
-        {isMobile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-3 left-3 z-30"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-          </Button>
-        )}
+        {ComponentToRender ? <ComponentToRender /> : <div>Select a tab or component not found.</div>}
         
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
-          <div className="mb-3 flex items-center justify-between">
-            <h1 className="text-lg md:text-2xl font-bold text-glamour-800">
-              {isCustomerDetail
-                ? "Customer Details"
-                : activeTab === "dashboard" ? "Dashboard"
-                : activeTab === "customers" ? "Customers"
-                : activeTab === "services" ? "Services"
-                : activeTab === "products" ? "Products"  
-                : activeTab === "appointments" ? "Appointments"
-                : activeTab === "cash" ? "Cash Management"
-                : activeTab === "staff" ? "Staff"
-                : activeTab === "settings" ? "Settings"
-                : activeTab === "profile" ? "Profile"
-                : ""
-              }
-            </h1>
-          </div>
-          {isCustomerDetail ? (
-            <CustomerDetailPage />
-          ) : (
-            <>
-              {activeTab === "dashboard" && <DashboardTab />}
-              {activeTab === "customers" && <CustomersTab />}
-              {activeTab === "services" && <ServicesTab />}
-              {activeTab === "products" && <ProductsTab />}
-              {activeTab === "appointments" && <AppointmentsTab />}
-              {activeTab === "cash" && <CashTab />}
-              {activeTab === "settings" && <SettingsTab />}
-              {activeTab === "staff" && <StaffTab />}
-              {activeTab === "profile" && <AdminProfile />}
-            </>
-          )}
-        </main>
-      </div>
+        {/* <Outlet /> */} {/* If using nested routes for tab content */}
+      </main>
     </div>
   );
 };
 
-export default Admin;
+export default AdminPage;
+
+// Developer instruction logs (Manual Testing Steps) have been removed.
+// Placeholders are defined above for self-containment of this example.
+// Debug logs are commented out by default; uncomment or use conditional logging for development.

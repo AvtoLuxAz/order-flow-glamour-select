@@ -1,0 +1,10 @@
+{
+  "nav.home": "Home",
+  "nav.services": "Services",
+  "nav.about": "About Us",
+  "button.submit": "Submit",
+  "greeting": "Hello, {name}!",
+  "page.title.settings": "Settings",
+  "error.network": "A network error occurred. Please try again.",
+  "common.loading": "Loading..."
+}
