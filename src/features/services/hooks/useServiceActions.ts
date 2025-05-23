@@ -1,84 +1,110 @@
 
-import { useState, useCallback } from 'react';
-import { useApi } from '@/hooks/use-api';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Service, ServiceFormData } from '../types';
 import { serviceService } from '../services/service.service';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { ApiResponse } from '@/services/apiClient'; // Assuming ApiResponse is defined here
 
-export function useServiceActions(onSuccess?: () => void) {
-  const api = useApi<Service>();
-  const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  
-  // Create service
-  const createService = useCallback(async (data: ServiceFormData) => {
-    setIsCreating(true);
-    try {
-      const result = await api.execute(
-        () => serviceService.create(data),
-        {
-          showSuccessToast: true,
-          successMessage: 'Xidmət uğurla yaradıldı',
-          errorPrefix: 'Xidmət yaradıla bilmədi',
-          onSuccess: () => onSuccess?.()
-        }
-      );
-      return result;
-    } finally {
-      setIsCreating(false);
-    }
-  }, [api, onSuccess]);
+export function useServiceActions(onSuccessCallback?: () => void) {
+  const queryClient = useQueryClient();
 
-  // Update service
-  const updateService = useCallback(async (id: number | string, data: Partial<ServiceFormData>) => {
-    setIsUpdating(true);
-    try {
+  // Create service mutation
+  const createServiceMutation = useMutation<Service | null, Error, ServiceFormData>({
+    mutationFn: async (data: ServiceFormData) => {
+      const response: ApiResponse<Service> = await serviceService.create(data);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data || null;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      toast({
+        title: 'Uğurlu əməliyyat',
+        description: 'Xidmət uğurla yaradıldı',
+      });
+      onSuccessCallback?.();
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Xəta',
+        description: error.message || 'Xidmət yaradıla bilmədi',
+      });
+    },
+  });
+
+  // Update service mutation
+  const updateServiceMutation = useMutation<Service | null, Error, { id: number | string; data: Partial<ServiceFormData> }>({
+    mutationFn: async ({ id, data }) => {
       const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-      const result = await api.execute(
-        () => serviceService.update(numericId, data),
-        {
-          showSuccessToast: true,
-          successMessage: 'Xidmət yeniləndi',
-          errorPrefix: 'Xidmət yenilənə bilmədi',
-          onSuccess: () => onSuccess?.()
-        }
-      );
-      return result;
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [api, onSuccess]);
+      const response: ApiResponse<Service> = await serviceService.update(numericId, data);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data || null;
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      queryClient.invalidateQueries({ queryKey: ['services', id] });
+      toast({
+        title: 'Uğurlu əməliyyat',
+        description: 'Xidmət yeniləndi',
+      });
+      onSuccessCallback?.();
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Xəta',
+        description: error.message || 'Xidmət yenilənə bilmədi',
+      });
+    },
+  });
 
-  // Delete service
-  const deleteService = useCallback(async (id: number | string) => {
-    setIsDeleting(true);
-    try {
+  // Delete service mutation
+  const deleteServiceMutation = useMutation<boolean, Error, number | string>({
+    mutationFn: async (id: number | string) => {
       const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-      const result = await api.execute(
-        () => serviceService.delete(numericId),
-        {
-          showSuccessToast: true,
-          successMessage: 'Xidmət silindi',
-          errorPrefix: 'Xidmət silinə bilmədi',
-          onSuccess: () => onSuccess?.()
-        }
-      );
-      return result;
-    } finally {
-      setIsDeleting(false);
-    }
-  }, [api, onSuccess]);
+      const response: ApiResponse<null> = await serviceService.delete(numericId); // Assuming delete returns null data
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return true;
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      queryClient.invalidateQueries({ queryKey: ['services', id] });
+      toast({
+        title: 'Uğurlu əməliyyat',
+        description: 'Xidmət silindi',
+      });
+      onSuccessCallback?.();
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Xəta',
+        description: error.message || 'Xidmət silinə bilmədi',
+      });
+    },
+  });
+
+  const isLoading = createServiceMutation.isPending || updateServiceMutation.isPending || deleteServiceMutation.isPending;
 
   return {
-    createService,
-    updateService,
-    deleteService,
-    isLoading: api.isLoading,
-    isCreating,
-    isUpdating,
-    isDeleting,
-    error: api.error
+    createService: createServiceMutation.mutateAsync,
+    isCreatingService: createServiceMutation.isPending,
+    createServiceError: createServiceMutation.error,
+
+    updateService: updateServiceMutation.mutateAsync,
+    isUpdatingService: updateServiceMutation.isPending,
+    updateServiceError: updateServiceMutation.error,
+
+    deleteService: deleteServiceMutation.mutateAsync,
+    isDeletingService: deleteServiceMutation.isPending,
+    deleteServiceError: deleteServiceMutation.error,
+    
+    isLoading, // General loading state
   };
 }

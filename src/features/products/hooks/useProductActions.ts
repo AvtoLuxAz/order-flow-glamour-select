@@ -1,124 +1,98 @@
 
-import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Product, ProductFormData } from '@/models/product.model';
 import { productService } from '@/services';
 import { useToast } from '@/hooks/use-toast';
 
 export const useProductActions = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false); // Added this state
-  const [isUpdating, setIsUpdating] = useState(false); // Added this state
-  const [isDeleting, setIsDeleting] = useState(false); // Added this state
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const createProduct = async (productData: ProductFormData): Promise<Product | null> => {
-    setLoading(true);
-    setIsCreating(true); // Set the creating state
-    setError(null);
-    
-    try {
+  const createProductMutation = useMutation<Product | null, Error, ProductFormData>({
+    mutationFn: async (productData: ProductFormData) => {
       const response = await productService.create(productData);
-      
       if (response.error) {
         throw new Error(response.error);
       }
-      
+      return response.data || null;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast({
         title: "Məhsul yaradıldı",
         description: "Məhsul uğurla əlavə edildi"
       });
-      
-      return response.data || null;
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Məhsul yaradılarkən xəta baş verdi';
-      setError(errorMsg);
+    },
+    onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "Xəta",
-        description: errorMsg
+        description: error.message || 'Məhsul yaradılarkən xəta baş verdi'
       });
-      return null;
-    } finally {
-      setLoading(false);
-      setIsCreating(false); // Reset the creating state
     }
-  };
+  });
 
-  const updateProduct = async (id: string | number, productData: Partial<ProductFormData>): Promise<Product | null> => {
-    setLoading(true);
-    setIsUpdating(true); // Set the updating state
-    setError(null);
-    
-    try {
+  const updateProductMutation = useMutation<Product | null, Error, { id: string | number; productData: Partial<ProductFormData> }>({
+    mutationFn: async ({ id, productData }) => {
       const response = await productService.update(id, productData);
-      
       if (response.error) {
         throw new Error(response.error);
       }
-      
+      return response.data || null;
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['products', id] });
       toast({
         title: "Məhsul yeniləndi",
         description: "Məhsul uğurla yeniləndi"
       });
-      
-      return response.data || null;
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Məhsul yenilərkən xəta baş verdi';
-      setError(errorMsg);
+    },
+    onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "Xəta",
-        description: errorMsg
+        description: error.message || 'Məhsul yenilərkən xəta baş verdi'
       });
-      return null;
-    } finally {
-      setLoading(false);
-      setIsUpdating(false); // Reset the updating state
     }
-  };
+  });
 
-  const deleteProduct = async (id: string | number): Promise<boolean> => {
-    setLoading(true);
-    setIsDeleting(true); // Set the deleting state
-    setError(null);
-    
-    try {
+  const deleteProductMutation = useMutation<boolean, Error, string | number>({
+    mutationFn: async (id: string | number) => {
       const response = await productService.delete(id);
-      
       if (response.error) {
         throw new Error(response.error);
       }
-      
+      return true;
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['products', id] });
       toast({
         title: "Məhsul silindi",
         description: "Məhsul uğurla silindi"
       });
-      
-      return true;
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Məhsul silinərkən xəta baş verdi';
-      setError(errorMsg);
+    },
+    onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "Xəta",
-        description: errorMsg
+        description: error.message || 'Məhsul silinərkən xəta baş verdi'
       });
-      return false;
-    } finally {
-      setLoading(false);
-      setIsDeleting(false); // Reset the deleting state
     }
-  };
+  });
 
   return {
-    loading,
-    error,
-    isCreating,  // Add these states to the return object
-    isUpdating,
-    isDeleting,
-    createProduct,
-    updateProduct,
-    deleteProduct
+    createProduct: createProductMutation.mutateAsync,
+    isCreatingProduct: createProductMutation.isPending,
+    createProductError: createProductMutation.error,
+
+    updateProduct: updateProductMutation.mutateAsync,
+    isUpdatingProduct: updateProductMutation.isPending,
+    updateProductError: updateProductMutation.error,
+
+    deleteProduct: deleteProductMutation.mutateAsync,
+    isDeletingProduct: deleteProductMutation.isPending,
+    deleteProductError: deleteProductMutation.error,
   };
 };

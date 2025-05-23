@@ -1,195 +1,41 @@
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { format } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
+import { useAppointmentData } from "@/hooks/useAppointmentData";
+// Assuming AppointmentWithDetails is exported from appointment.service or a model file
+// For this example, let's assume it's from the service as it's closely tied to getAppointmentDetails
+import { AppointmentWithDetails } from "@/services/appointment.service"; 
 
 interface BookingDetailsProps {
   appointmentId: string;
 }
 
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-}
-
-interface AppointmentWithDetails {
-  id: number;
-  appointment_date: string;
-  start_time: string;
-  end_time: string;
-  status: string;
-  total: number;
-  customer: Customer;
-  services: Array<{
-    id: number;
-    name: string;
-    price: number;
-    duration: number;
-    staffName: string;
-  }>;
-  products: Array<{
-    id: number;
-    name: string;
-    price: number;
-    quantity: number;
-  }>;
-}
-
 const BookingDetails: React.FC<BookingDetailsProps> = ({ appointmentId }) => {
-  const [appointment, setAppointment] = useState<AppointmentWithDetails | null>(
-    null
-  );
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { 
+    data: appointment, 
+    isLoading, 
+    isError, 
+    error: hookError // Renaming to avoid conflict with any other 'error' variable if present
+  } = useAppointmentData(appointmentId);
 
-  useEffect(() => {
-    const fetchAppointmentDetails = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Convert appointmentId to number for the database query
-        const appointmentIdNumber = parseInt(appointmentId);
-        
-        if (isNaN(appointmentIdNumber)) {
-          throw new Error("Invalid appointment ID");
-        }
-
-        // Fetch appointment basic info
-        const { data: appointmentData, error: appointmentError } =
-          await supabase
-            .from("appointments")
-            .select("*")
-            .eq("id", appointmentIdNumber)
-            .single();
-
-        if (appointmentError) throw appointmentError;
-        if (!appointmentData) {
-          throw new Error("Appointment not found");
-        }
-
-        // Fetch the customer (user with role='customer')
-        const { data: userData, error: userError } = await supabase
-          .from("users")
-          .select("id, full_name, email, phone")
-          .eq("id", appointmentData.customer_user_id)
-          .eq("role", "customer")
-          .single();
-
-        if (userError) throw userError;
-
-        // Convert customer data to our model
-        const customer: Customer = {
-          id: userData.id,
-          name: userData.full_name || "",
-          email: userData.email || "",
-          phone: userData.phone || "",
-        };
-
-        // Fetch appointment services
-        const { data: serviceEntries, error: serviceError } = await supabase
-          .from("appointment_services")
-          .select(`
-            id, 
-            service_id,
-            price,
-            quantity,
-            staff_id,
-            duration,
-            services:service_id(name)
-          `)
-          .eq("appointment_id", appointmentIdNumber);
-
-        if (serviceError) throw serviceError;
-
-        // Fetch staff names
-        const staffIds = serviceEntries.map((entry) => entry.staff_id);
-        const { data: staffData, error: staffError } = await supabase
-          .from("users")
-          .select("id, full_name")
-          .in("id", staffIds);
-
-        if (staffError) throw staffError;
-
-        // Map staff data
-        const staffMap = staffData.reduce(
-          (acc, staff) => ({
-            ...acc,
-            [staff.id]: staff.full_name,
-          }),
-          {}
-        );
-
-        // Format services data
-        const services = serviceEntries.map((entry) => ({
-          id: entry.service_id,
-          name: entry.services?.name || "Unknown Service",
-          price: entry.price || 0,
-          duration: entry.duration || 0,
-          staffName: staffMap[entry.staff_id] || "Unknown Staff",
-        }));
-
-        // Fetch appointment products
-        const { data: productEntries, error: productError } = await supabase
-          .from("appointment_products")
-          .select(`
-            id,
-            product_id,
-            price,
-            quantity,
-            products:product_id(name)
-          `)
-          .eq("appointment_id", appointmentIdNumber);
-
-        if (productError) throw productError;
-
-        // Format products data
-        const products = productEntries.map((entry) => ({
-          id: entry.product_id,
-          name: entry.products?.name || "Unknown Product",
-          price: entry.price || 0,
-          quantity: entry.quantity || 1,
-        }));
-
-        // Construct the full appointment object
-        const fullAppointment: AppointmentWithDetails = {
-          ...appointmentData,
-          customer,
-          services,
-          products,
-        };
-
-        setAppointment(fullAppointment);
-      } catch (err) {
-        console.error("Error fetching appointment details:", err);
-        setError(
-          err instanceof Error
-            ? err.message
-            : "An error occurred while loading appointment details"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (appointmentId) {
-      fetchAppointmentDetails();
-    }
-  }, [appointmentId]);
-
-  if (loading) {
+  if (isLoading) {
     return <p>Loading appointment details...</p>;
   }
 
-  if (error) {
-    return <p className="text-red-500">Error: {error}</p>;
+  // hookError is of type Error | null. We need its message for display.
+  if (isError) {
+    return <p className="text-red-500">Error: {hookError?.message || 'An unknown error occurred'}</p>;
   }
 
   if (!appointment) {
-    return <p>No appointment data found</p>;
+    return <p>No appointment data found for ID {appointmentId}</p>;
   }
+
+  // The structure of `appointment` from `useAppointmentData` (which uses `appointmentService.getAppointmentDetails`)
+  // should match the previously defined `AppointmentWithDetails` structure.
+  // Specifically, `appointment.customer` can be null.
+  // `appointment.services` items will have `service_name`, `staff_name`, `service_price_at_booking`.
+  // `appointment.products` items will have `product_name`, `quantity`, `product_price_at_booking`.
 
   const formatDate = (dateString: string) => {
     try {
@@ -214,7 +60,13 @@ const BookingDetails: React.FC<BookingDetailsProps> = ({ appointmentId }) => {
                 ? "Tamamlanıb"
                 : appointment.status === "scheduled"
                 ? "Planlaşdırılıb"
-                : "Ləğv edilib"}
+                : appointment.status === "cancelled"
+                ? "Ləğv edilib"
+                : appointment.status === "confirmed"
+                ? "Təsdiqlənib"
+                : appointment.status === "no_show"
+                ? "Gəlmədi"
+                : appointment.status} 
             </p>
           </div>
           <div>
@@ -237,59 +89,64 @@ const BookingDetails: React.FC<BookingDetailsProps> = ({ appointmentId }) => {
 
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Müştəri məlumatları</h3>
-          <div className="bg-gray-50 p-3 rounded">
-            <p>
-              <span className="font-medium">Ad:</span> {appointment.customer.name}
-            </p>
-            <p>
-              <span className="font-medium">Email:</span>{" "}
-              {appointment.customer.email}
-            </p>
-            <p>
-              <span className="font-medium">Telefon:</span>{" "}
-              {appointment.customer.phone}
-            </p>
-          </div>
+          {appointment.customer ? (
+            <div className="bg-gray-50 p-3 rounded">
+              <p>
+                <span className="font-medium">Ad:</span> {appointment.customer.first_name} {appointment.customer.last_name}
+              </p>
+              <p>
+                <span className="font-medium">Email:</span>{" "}
+                {appointment.customer.email || "N/A"}
+              </p>
+              <p>
+                <span className="font-medium">Telefon:</span>{" "}
+                {appointment.customer.phone_number || "N/A"}
+              </p>
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">Müştəri məlumatı tapılmadı.</p>
+          )}
         </div>
 
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Xidmətlər</h3>
-          {appointment.services.length > 0 ? (
+          {appointment.services && appointment.services.length > 0 ? (
             <div className="divide-y border rounded overflow-hidden">
               {appointment.services.map((service) => (
-                <div key={service.id} className="p-3 bg-white">
+                <div key={service.service_id} className="p-3 bg-white"> {/* Assuming service_id is unique for key */}
                   <div className="flex justify-between">
                     <div>
-                      <p className="font-medium">{service.name}</p>
+                      <p className="font-medium">{service.service_name}</p>
                       <p className="text-gray-500 text-sm">
-                        {service.duration} dəqiqə | {service.staffName}
+                        {/* Duration is not in AppointmentServiceItem, adapt if needed */}
+                        Staff: {service.staff_name} 
                       </p>
                     </div>
-                    <p className="font-semibold">{service.price} AZN</p>
+                    <p className="font-semibold">{service.service_price_at_booking ?? 0} AZN</p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 italic">No services found</p>
+            <p className="text-gray-500 italic">Xidmət tapılmadı.</p>
           )}
         </div>
 
-        {appointment.products.length > 0 && (
+        {appointment.products && appointment.products.length > 0 && (
           <div>
             <h3 className="text-lg font-semibold mb-2">Məhsullar</h3>
             <div className="divide-y border rounded overflow-hidden">
               {appointment.products.map((product) => (
-                <div key={product.id} className="p-3 bg-white">
+                <div key={product.product_id} className="p-3 bg-white"> {/* Assuming product_id is unique for key */}
                   <div className="flex justify-between">
                     <div>
-                      <p className="font-medium">{product.name}</p>
+                      <p className="font-medium">{product.product_name}</p>
                       <p className="text-gray-500 text-sm">
                         {product.quantity} ədəd
                       </p>
                     </div>
                     <p className="font-semibold">
-                      {product.price * product.quantity} AZN
+                      {(product.product_price_at_booking ?? 0) * product.quantity} AZN
                     </p>
                   </div>
                 </div>
