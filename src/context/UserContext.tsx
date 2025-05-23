@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
-import { supabase } from '../supabaseClient'; // Assuming supabaseClient is in src/supabaseClient.ts
+import { supabase } from '@/integrations/supabase/client';
 import { User } from '../models/user.model'; 
 import { toast } from 'react-hot-toast';
 
