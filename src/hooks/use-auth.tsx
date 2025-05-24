@@ -1,9 +1,8 @@
-import { UserContext } from "../context/UserContext";
-import { User } from "../models/user.model";
-import React from "react";
+import { useUser } from '../context/UserContext';
+import { User } from '../models/user.model';
 
 // Define a type for permission (can be extended for more granular permissions)
-export type Permission = "view_dashboard" | "manage_settings" | "delete_users"; // Example permissions
+export type Permission = 'view_dashboard' | 'manage_settings' | 'delete_users'; // Example permissions
 
 interface AuthHook {
   user: User | null;
@@ -12,15 +11,14 @@ interface AuthHook {
   hasPermission: (permission: Permission) => boolean;
 }
 
-// Consider wrapping development-specific console.logs with
+// Consider wrapping development-specific console.logs with 
 // if (process.env.NODE_ENV === 'development') { /* ... */ } for cleaner production builds.
 
 export const useAuth = (): AuthHook => {
-  const { user, isLoading } = React.useContext(UserContext);
+  const { user, isLoading } = useUser(); // Removed unused 'session' variable
 
   const checkAccess = (allowedRoles: string[]): boolean => {
-    if (isLoading || !user?.role) {
-      // Simplified check for user and user.role
+    if (isLoading || !user?.role) { // Simplified check for user and user.role
       // console.log('checkAccess: Loading or no user/role, access denied.'); // Dev log
       return false;
     }
@@ -32,8 +30,7 @@ export const useAuth = (): AuthHook => {
   // Placeholder for hasPermission, can be expanded based on application needs.
   // This example demonstrates role-based implicit permissions.
   const hasPermission = (permission: Permission): boolean => {
-    if (isLoading || !user?.role) {
-      // Simplified check for user and user.role
+    if (isLoading || !user?.role) { // Simplified check for user and user.role
       // console.log('hasPermission: Loading or no user/role, permission denied.'); // Dev log
       return false;
     }
@@ -42,20 +39,17 @@ export const useAuth = (): AuthHook => {
 
     // Example permission logic:
     switch (user.role) {
-      case "admin":
+      case 'admin':
         // console.log('hasPermission: Admin role has all permissions. Access granted.'); // Dev log
         return true;
-      case "editor":
-        if (
-          permission === "view_dashboard" ||
-          permission === "manage_settings"
-        ) {
+      case 'editor':
+        if (permission === 'view_dashboard' || permission === 'manage_settings') {
           // console.log(`hasPermission: Editor role has permission "${permission}". Access granted.`); // Dev log
           return true;
         }
         break;
-      case "viewer":
-        if (permission === "view_dashboard") {
+      case 'viewer':
+        if (permission === 'view_dashboard') {
           // console.log(`hasPermission: Viewer role has permission "${permission}". Access granted.`); // Dev log
           return true;
         }
@@ -67,7 +61,7 @@ export const useAuth = (): AuthHook => {
     // console.log(`hasPermission: Role "${user.role}" does not have permission "${permission}". Access denied.`); // Dev log
     return false;
   };
-
+  
   // For active debugging:
   // if (process.env.NODE_ENV === 'development') {
   //   console.log("useAuth state:", { user, isLoading });
@@ -83,5 +77,5 @@ export const useAuth = (): AuthHook => {
 
 // Developer instruction logs (Manual Testing Steps) have been removed from the file content.
 // Such instructions are better suited for READMEs or external documentation.
-// Development-time console.logs for debugging data flow are kept (commented out by default for brevity)
+// Development-time console.logs for debugging data flow are kept (commented out by default for brevity) 
 // but should be conditionally rendered (e.g., via process.env.NODE_ENV === 'development') in production apps.

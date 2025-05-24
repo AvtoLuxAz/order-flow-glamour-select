@@ -1,31 +1,18 @@
-import React from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useCustomers } from "@/hooks/use-customers";
+
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea'; 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useCustomers } from '@/hooks/use-customers';
 
 // Define the schema for customer form data
 const formSchema = z.object({
-  full_name: z
-    .string()
-    .min(2, { message: "Name must be at least 2 characters." }),
+  full_name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
   phone: z.string().min(5, { message: "Phone number is required." }),
   gender: z.string().optional(),
@@ -41,16 +28,16 @@ interface CustomerFormProps {
 
 const CustomerForm: React.FC<CustomerFormProps> = ({ onSuccess }) => {
   const { createCustomer } = useCustomers();
-
+  
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      full_name: "",
-      email: "",
-      phone: "",
+      full_name: '',
+      email: '',
+      phone: '',
       gender: undefined,
       // Don't include birth_date and note if they're not in the schema
-    },
+    }
   });
 
   const onSubmit = async (data: FormData) => {
@@ -61,14 +48,14 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ onSuccess }) => {
         full_name: data.full_name,
         email: data.email,
         phone: data.phone,
-        gender: data.gender,
+        gender: data.gender
       };
-
+      
       await createCustomer(customerData);
       form.reset();
       onSuccess();
     } catch (error) {
-      console.error("Failed to create customer:", error);
+      console.error('Failed to create customer:', error);
     }
   };
 
@@ -88,7 +75,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ onSuccess }) => {
             </FormItem>
           )}
         />
-
+        
         <FormField
           control={form.control}
           name="email"
@@ -102,7 +89,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ onSuccess }) => {
             </FormItem>
           )}
         />
-
+        
         <FormField
           control={form.control}
           name="phone"
@@ -116,7 +103,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ onSuccess }) => {
             </FormItem>
           )}
         />
-
+        
         <FormField
           control={form.control}
           name="gender"
@@ -139,13 +126,13 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ onSuccess }) => {
             </FormItem>
           )}
         />
-
+        
         <div className="flex justify-end space-x-2">
           <Button type="button" variant="outline" onClick={() => onSuccess()}>
             Cancel
           </Button>
           <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? "Saving..." : "Save Customer"}
+            {form.formState.isSubmitting ? 'Saving...' : 'Save Customer'}
           </Button>
         </div>
       </form>

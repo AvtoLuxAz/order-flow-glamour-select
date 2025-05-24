@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Form,
   FormControl,
@@ -13,31 +14,21 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { useServiceData, useServiceActions } from "../hooks";
-import { Service } from "../types";
-import { toast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
-import { useProducts } from "@/hooks/use-products";
-import MultiSelect from "@/components/common/MultiSelect";
+} from '@/components/ui/form';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useServiceData, useServiceActions } from '../hooks';
+import { Service } from '../types';
+import { toast } from '@/components/ui/use-toast';
+import { Loader2 } from 'lucide-react';
+import { useProducts } from '@/hooks/use-products';
+import MultiSelect from '@/components/common/MultiSelect';
 
 // Form schema
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
   description: z.string().optional(),
-  duration: z.coerce
-    .number()
-    .min(1, { message: "Duration must be at least 1 minute" }),
-  price: z.coerce
-    .number()
-    .min(0, { message: "Price must be a positive number" }),
+  duration: z.coerce.number().min(1, { message: 'Duration must be at least 1 minute' }),
+  price: z.coerce.number().min(0, { message: 'Price must be a positive number' }),
   benefits: z.array(z.string()).optional(),
   relatedProducts: z.array(z.number()).optional(),
 });
@@ -48,28 +39,20 @@ const ServiceForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditing = Boolean(id);
-  const { data: serviceData } = useServiceData(
-    isEditing ? parseInt(id!, 10) : undefined
-  );
-  const service = serviceData as Service | undefined;
-  const {
-    createService,
-    updateService,
-    isCreatingService: isCreating,
-    isUpdatingService: isUpdating,
-  } = useServiceActions(() => {
-    navigate("/services");
+  const { service, fetchService } = useServiceData();
+  const { createService, updateService, isCreating, isUpdating } = useServiceActions(() => {
+    navigate('/services');
   });
   const { products } = useProducts();
   const [benefits, setBenefits] = useState<string[]>([]);
-  const [newBenefit, setNewBenefit] = useState("");
+  const [newBenefit, setNewBenefit] = useState('');
 
   // Initialize form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      description: "",
+      name: '',
+      description: '',
       duration: 30,
       price: 0,
       benefits: [],
@@ -80,17 +63,29 @@ const ServiceForm: React.FC = () => {
   // Fetch service data if editing
   useEffect(() => {
     if (isEditing && id) {
-      form.reset({
-        name: service?.name || "",
-        description: service?.description || "",
-        duration: service?.duration || 30,
-        price: service?.price || 0,
-        benefits: service?.benefits || [],
-        relatedProducts: service?.relatedProducts || [],
-      });
-      setBenefits(service?.benefits || []);
+      fetchService(parseInt(id, 10))
+        .then((data) => {
+          if (data) {
+            form.reset({
+              name: data.name,
+              description: data.description || '',
+              duration: data.duration,
+              price: data.price,
+              benefits: data.benefits || [],
+              relatedProducts: data.relatedProducts || [],
+            });
+            setBenefits(data.benefits || []);
+          }
+        })
+        .catch((error) => {
+          toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: `Failed to load service: ${error.message}`,
+          });
+        });
     }
-  }, [isEditing, id, service, form]);
+  }, [isEditing, id, fetchService, form]);
 
   // Handle form submission
   const onSubmit = async (values: FormValues) => {
@@ -98,26 +93,24 @@ const ServiceForm: React.FC = () => {
       // Ensure all required fields are present
       const serviceData = {
         name: values.name,
-        description: values.description || "",
+        description: values.description || '',
         duration: values.duration,
         price: values.price,
         benefits: values.benefits || [],
-        relatedProducts: values.relatedProducts || [],
+        relatedProducts: values.relatedProducts || []
       };
-
+      
       if (isEditing && id) {
-        await updateService({ id: parseInt(id, 10), data: serviceData });
+        await updateService(parseInt(id, 10), serviceData);
       } else {
         await createService(serviceData);
       }
     } catch (error) {
-      console.error("Error saving service:", error);
+      console.error('Error saving service:', error);
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: `Failed to save service: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
+        variant: 'destructive',
+        title: 'Error',
+        description: `Failed to save service: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
     }
   };
@@ -127,8 +120,8 @@ const ServiceForm: React.FC = () => {
     if (newBenefit.trim()) {
       const updatedBenefits = [...benefits, newBenefit.trim()];
       setBenefits(updatedBenefits);
-      form.setValue("benefits", updatedBenefits);
-      setNewBenefit("");
+      form.setValue('benefits', updatedBenefits);
+      setNewBenefit('');
     }
   };
 
@@ -136,21 +129,19 @@ const ServiceForm: React.FC = () => {
   const handleRemoveBenefit = (index: number) => {
     const updatedBenefits = benefits.filter((_, i) => i !== index);
     setBenefits(updatedBenefits);
-    form.setValue("benefits", updatedBenefits);
+    form.setValue('benefits', updatedBenefits);
   };
 
   // Product options for multi-select - Convert numbers to strings to match MultiSelectOption type
-  const productOptions = products.map((product) => ({
+  const productOptions = products.map(product => ({
     value: String(product.id), // Convert number to string
-    label: product.name,
+    label: product.name
   }));
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
-        <CardTitle>
-          {isEditing ? "Edit Service" : "Create New Service"}
-        </CardTitle>
+        <CardTitle>{isEditing ? 'Edit Service' : 'Create New Service'}</CardTitle>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -237,10 +228,8 @@ const ServiceForm: React.FC = () => {
                   <FormControl>
                     <MultiSelect
                       options={productOptions}
-                      selected={field.value?.map((v) => String(v)) || []} // Convert numbers to strings
-                      onChange={(selected) =>
-                        field.onChange(selected.map(Number))
-                      }
+                      selected={field.value?.map(v => String(v)) || []} // Convert numbers to strings
+                      onChange={(selected) => field.onChange(selected.map(Number))}
                       placeholder="Select related products"
                     />
                   </FormControl>
@@ -258,7 +247,7 @@ const ServiceForm: React.FC = () => {
                   placeholder="Add a benefit"
                   className="flex-1 mr-2"
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") {
+                    if (e.key === 'Enter') {
                       e.preventDefault();
                       handleAddBenefit();
                     }
@@ -295,15 +284,18 @@ const ServiceForm: React.FC = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate("/services")}
+              onClick={() => navigate('/services')}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isCreating || isUpdating}>
+            <Button
+              type="submit"
+              disabled={isCreating || isUpdating}
+            >
               {(isCreating || isUpdating) && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {isEditing ? "Update Service" : "Create Service"}
+              {isEditing ? 'Update Service' : 'Create Service'}
             </Button>
           </CardFooter>
         </form>

@@ -1,9 +1,10 @@
+
 // Basic API service with common CRUD operations
-import { ApiResponse } from "@/models/types";
+import { ApiResponse } from '@/models/types';
 
 export abstract class ApiService {
   // Base endpoint for all requests
-  protected baseEndpoint: string = "/api";
+  protected baseEndpoint: string = '/api';
 
   // Generic GET request
   protected async get<T>(endpoint: string): Promise<ApiResponse<T>> {
@@ -16,22 +17,17 @@ export abstract class ApiService {
       return { data };
     } catch (error) {
       console.error(`GET request failed for ${endpoint}:`, error);
-      return {
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
+      return { error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
   // Generic POST request
-  protected async post<T, D = unknown>(
-    endpoint: string,
-    data: D
-  ): Promise<ApiResponse<T>> {
+  protected async post<T>(endpoint: string, data: any): Promise<ApiResponse<T>> {
     try {
       const response = await fetch(`${this.baseEndpoint}${endpoint}`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
       });
@@ -42,22 +38,17 @@ export abstract class ApiService {
       return { data: responseData };
     } catch (error) {
       console.error(`POST request failed for ${endpoint}:`, error);
-      return {
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
+      return { error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
   // Generic PUT request
-  protected async put<T, D = unknown>(
-    endpoint: string,
-    data: D
-  ): Promise<ApiResponse<T>> {
+  protected async put<T>(endpoint: string, data: any): Promise<ApiResponse<T>> {
     try {
       const response = await fetch(`${this.baseEndpoint}${endpoint}`, {
-        method: "PUT",
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
       });
@@ -68,34 +59,29 @@ export abstract class ApiService {
       return { data: responseData };
     } catch (error) {
       console.error(`PUT request failed for ${endpoint}:`, error);
-      return {
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
+      return { error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
   // Generic DELETE request - updated to accept endpoint or numeric id
-  protected async delete(
-    endpoint: string | number
-  ): Promise<ApiResponse<boolean>> {
+  protected async delete(endpoint: string | number): Promise<ApiResponse<boolean>> {
     try {
-      const finalEndpoint =
-        typeof endpoint === "number"
-          ? `${this.baseEndpoint}/services/${endpoint}`
-          : `${this.baseEndpoint}${endpoint}`;
-
+      const finalEndpoint = typeof endpoint === 'number' 
+        ? `${this.baseEndpoint}/services/${endpoint}` 
+        : `${this.baseEndpoint}${endpoint}`;
+      
       const response = await fetch(finalEndpoint, {
-        method: "DELETE",
+        method: 'DELETE',
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+      
       // Some DELETE responses may return no content
       if (response.status === 204) {
         return { data: true };
       }
-
+      
       try {
         const responseData = await response.json();
         return { data: responseData || true };
@@ -105,9 +91,7 @@ export abstract class ApiService {
       }
     } catch (error) {
       console.error(`DELETE request failed for ${endpoint}:`, error);
-      return {
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
+      return { error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 }

@@ -1,13 +1,9 @@
-import { useState, useEffect } from "react";
-import {
-  Staff,
-  StaffFormData,
-  StaffWorkingHours,
-  StaffPayment,
-  StaffServiceRecord,
-} from "@/models/staff.model";
+
+import { useState, useEffect, useCallback } from "react";
+import { Staff, StaffFormData, StaffWorkingHours, StaffPayment, StaffServiceRecord } from "@/models/staff.model";
 import { staffService } from "@/services/staff.service";
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface StaffEarnings {
   salary: number;
@@ -23,9 +19,7 @@ export function useStaff() {
   const [error, setError] = useState<string>("");
   const [workingHours, setWorkingHours] = useState<StaffWorkingHours[]>([]);
   const [staffPayments, setStaffPayments] = useState<StaffPayment[]>([]);
-  const [serviceRecords, setServiceRecords] = useState<StaffServiceRecord[]>(
-    []
-  );
+  const [serviceRecords, setServiceRecords] = useState<StaffServiceRecord[]>([]);
   const [earnings, setEarnings] = useState<StaffEarnings | null>(null);
 
   const fetchStaff = async () => {
@@ -60,7 +54,7 @@ export function useStaff() {
     setIsLoading(true);
     setError("");
     try {
-      const staffId = typeof id === "number" ? id.toString() : id;
+      const staffId = typeof id === 'number' ? id.toString() : id;
       const response = await staffService.getStaffMemberById(staffId);
       if (response.data) {
         setSelectedStaff(response.data);
@@ -88,9 +82,7 @@ export function useStaff() {
     }
   };
 
-  const createStaffMember = async (
-    staffData: StaffFormData
-  ): Promise<Staff> => {
+  const createStaffMember = async (staffData: StaffFormData): Promise<Staff> => {
     setIsLoading(true);
     setError("");
     try {
@@ -126,10 +118,7 @@ export function useStaff() {
     }
   };
 
-  const updateStaffMember = async (
-    id: string,
-    updates: Partial<StaffFormData>
-  ): Promise<Staff> => {
+  const updateStaffMember = async (id: string, updates: Partial<StaffFormData>): Promise<Staff> => {
     setIsLoading(true);
     setError("");
     try {
@@ -215,19 +204,16 @@ export function useStaff() {
     setIsLoading(true);
     try {
       // For now, using mock data - would normally fetch from API
-      const mockHours: StaffWorkingHours[] = Array.from(
-        { length: 7 },
-        (_, i) => ({
-          id: i + 1,
-          staff_id: staffId,
-          day_of_week: i,
-          start_time: "09:00",
-          end_time: "17:00",
-          is_day_off: i === 0 || i === 6, // Weekends off by default
-          is_available: !(i === 0 || i === 6),
-        })
-      );
-
+      const mockHours: StaffWorkingHours[] = Array.from({ length: 7 }, (_, i) => ({
+        id: `wh-${staffId}-${i}`,
+        staff_id: staffId,
+        day_of_week: i,
+        start_time: "09:00",
+        end_time: "17:00",
+        is_day_off: i === 0 || i === 6, // Weekends off by default
+        is_available: !(i === 0 || i === 6)
+      }));
+      
       setWorkingHours(mockHours);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -250,14 +236,14 @@ export function useStaff() {
     setIsLoading(true);
     try {
       // Mock API call
-      setWorkingHours((prev) =>
-        prev.map((day) =>
+      setWorkingHours(prev => 
+        prev.map(day => 
           day.day_of_week === dayOfWeek && day.staff_id === staffId
             ? { ...day, ...updates }
             : day
         )
       );
-
+      
       return true;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -279,19 +265,31 @@ export function useStaff() {
       // Using mock data
       const mockPayments: StaffPayment[] = [
         {
-          id: 1,
-          staff_id: typeof staffId === "number" ? staffId.toString() : staffId,
+          id: "pay1",
+          staff_id: typeof staffId === 'number' ? staffId.toString() : staffId,
+          amount: 1200,
           payment_type: "salary",
-          base_salary: 1200,
+          payment_date: "2023-05-01",
+          created_at: "2023-05-01",
+          updated_at: "2023-05-01",
+          date: "2023-05-01",
+          type: "salary",
+          description: "Monthly salary"
         },
         {
-          id: 2,
-          staff_id: typeof staffId === "number" ? staffId.toString() : staffId,
+          id: "pay2",
+          staff_id: typeof staffId === 'number' ? staffId.toString() : staffId,
+          amount: 350,
           payment_type: "commission",
-          commission_rate: 0.15,
-        },
+          payment_date: "2023-05-15",
+          created_at: "2023-05-15",
+          updated_at: "2023-05-15",
+          date: "2023-05-15",
+          type: "commission",
+          description: "Commission for services"
+        }
       ];
-
+      
       setStaffPayments(mockPayments);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -307,21 +305,33 @@ export function useStaff() {
       // Using mock data
       const mockRecords: StaffServiceRecord[] = [
         {
-          id: 1,
-          staff_id: typeof staffId === "number" ? staffId.toString() : staffId,
+          id: "sr1",
+          staff_id: typeof staffId === 'number' ? staffId.toString() : staffId,
           service_id: 1,
+          commission_rate: 0.1,
+          created_at: "2023-05-10",
+          updated_at: "2023-05-10",
+          date: "2023-05-10",
+          customer_name: "Jane Doe",
           service_name: "Haircut",
-          can_perform: true,
+          price: 50,
+          commission: 5
         },
         {
-          id: 2,
-          staff_id: typeof staffId === "number" ? staffId.toString() : staffId,
+          id: "sr2",
+          staff_id: typeof staffId === 'number' ? staffId.toString() : staffId,
           service_id: 2,
+          commission_rate: 0.15,
+          created_at: "2023-05-12",
+          updated_at: "2023-05-12",
+          date: "2023-05-12",
+          customer_name: "John Smith",
           service_name: "Hair coloring",
-          can_perform: true,
-        },
+          price: 120,
+          commission: 18
+        }
       ];
-
+      
       setServiceRecords(mockRecords);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -343,9 +353,9 @@ export function useStaff() {
         salary: 1200,
         commission: 250,
         expenses: 50,
-        total: 1400,
+        total: 1400
       };
-
+      
       setEarnings(mockEarnings);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -377,6 +387,6 @@ export function useStaff() {
     serviceRecords,
     fetchServiceRecords,
     earnings,
-    calculateEarnings,
+    calculateEarnings
   };
 }

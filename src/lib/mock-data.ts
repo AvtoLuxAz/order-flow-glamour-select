@@ -1,39 +1,49 @@
+
 // Mock data for users
-import { User } from "@/models/user.model";
+import { User, UserRole } from "@/models/user.model";
 import { Appointment, AppointmentStatus } from "@/models/appointment.model";
 import { Service } from "@/models/service.model";
 import { Staff } from "@/models/staff.model";
 
-// Mock data for users
-const mockUsers: User[] = [
+// Fix the fullName property to use full_name
+const mockUsers = [
   {
     id: "1",
     email: "admin@example.com",
+    full_name: "Admin User",
     role: "admin",
-    firstName: "Admin",
-    lastName: "User",
-    isActive: true,
+    gender: "male",
+    phone: "+1234567890",
+    hashed_password: "password123",
+    created_at: "2023-01-01T00:00:00Z",
+    updated_at: "2023-01-01T00:00:00Z",
   },
   {
     id: "2",
     email: "staff@example.com",
+    full_name: "Staff User",
     role: "staff",
-    firstName: "Staff",
-    lastName: "Member",
-    isActive: true,
+    gender: "female",
+    phone: "+1234567891",
+    hashed_password: "password123",
+    created_at: "2023-01-01T00:00:00Z",
+    updated_at: "2023-01-01T00:00:00Z",
   },
   {
     id: "3",
     email: "customer@example.com",
+    full_name: "Customer User",
     role: "customer",
-    firstName: "John",
-    lastName: "Doe",
-    isActive: true,
-  },
+    gender: "other",
+    phone: "+1234567892",
+    hashed_password: "password123",
+    created_at: "2023-01-01T00:00:00Z",
+    updated_at: "2023-01-01T00:00:00Z",
+  }
 ];
 
 // Mock data for services
-const mockServices: Service[] = [
+const mockServices = [
   {
     id: 1,
     name: "Haircut",
@@ -60,11 +70,11 @@ const mockServices: Service[] = [
     duration: 60,
     created_at: "2023-01-01T00:00:00Z",
     updated_at: "2023-01-01T00:00:00Z",
-  },
+  }
 ];
 
 // Mock data for staff members
-const mockStaffMembers: Staff[] = [
+const mockStaffMembers = [
   {
     id: "1",
     name: "John Doe",
@@ -91,11 +101,11 @@ const mockStaffMembers: Staff[] = [
     created_at: "2023-01-01T00:00:00Z",
     updated_at: "2023-01-01T00:00:00Z",
     user_id: "2",
-  },
+  }
 ];
 
 // Fix appointment status to use AppointmentStatus type
-const mockAppointments: Appointment[] = [
+const mockAppointments = [
   {
     id: 1,
     customer_user_id: "3",
@@ -108,7 +118,7 @@ const mockAppointments: Appointment[] = [
     cancel_reason: "",
     created_at: "2023-05-25T10:00:00Z",
     updated_at: "2023-05-25T10:00:00Z",
-    is_no_show: false,
+    is_no_show: false
   },
   {
     id: 2,
@@ -122,7 +132,7 @@ const mockAppointments: Appointment[] = [
     cancel_reason: "",
     created_at: "2023-05-25T14:00:00Z",
     updated_at: "2023-06-02T15:15:00Z",
-    is_no_show: false,
+    is_no_show: false
   },
   {
     id: 3,
@@ -136,8 +146,8 @@ const mockAppointments: Appointment[] = [
     cancel_reason: "Customer requested cancellation",
     created_at: "2023-05-26T11:00:00Z",
     updated_at: "2023-05-30T09:30:00Z",
-    is_no_show: false,
-  },
+    is_no_show: false
+  }
 ];
 
 export { mockUsers, mockServices, mockStaffMembers, mockAppointments };

@@ -1,4 +1,10 @@
-import React, { useState, ReactNode, useCallback, useContext } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+} from "react";
 import {
   OrderContextType,
   OrderState,
@@ -8,12 +14,15 @@ import {
   Staff,
   Product,
 } from "./OrderContext.d";
-import { OrderContext } from "./OrderContextDefinition";
 
 type OrderProviderProps = {
   children: ReactNode;
   initialCustomer?: Customer;
 };
+
+export const OrderContext = createContext<OrderContextType | undefined>(
+  undefined
+);
 
 export const OrderProvider: React.FC<OrderProviderProps> = ({
   children,
@@ -243,4 +252,12 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({
   return (
     <OrderContext.Provider value={value}>{children}</OrderContext.Provider>
   );
+};
+
+export const useOrder = () => {
+  const context = useContext(OrderContext);
+  if (context === undefined) {
+    throw new Error("useOrder must be used within an OrderProvider");
+  }
+  return context;
 };

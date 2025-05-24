@@ -1,19 +1,17 @@
-import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/use-auth";
-import { toast } from "@/components/ui/use-toast";
-import { Loader } from "lucide-react";
-import { UserRole } from "@/models/role.model";
+
+import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/use-auth';
+import { toast } from '@/components/ui/use-toast';
+import { Loader } from 'lucide-react';
+import { UserRole } from '@/models/user.model';
 
 interface RequireAuthProps {
   children: React.ReactNode;
   allowedRoles: UserRole[];
 }
 
-const RequireAuth: React.FC<RequireAuthProps> = ({
-  children,
-  allowedRoles,
-}) => {
+const RequireAuth: React.FC<RequireAuthProps> = ({ children, allowedRoles }) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
@@ -30,7 +28,7 @@ const RequireAuth: React.FC<RequireAuthProps> = ({
     toast({
       variant: "destructive",
       title: "Unauthorized",
-      description: "You need to login to access this page.",
+      description: "You need to login to access this page."
     });
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
@@ -39,7 +37,7 @@ const RequireAuth: React.FC<RequireAuthProps> = ({
     toast({
       variant: "destructive",
       title: "Forbidden",
-      description: "You do not have permission to access this page.",
+      description: "You do not have permission to access this page."
     });
     return <Navigate to="/" replace />;
   }
