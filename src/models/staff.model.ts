@@ -1,4 +1,3 @@
-
 export interface Staff {
   id: string;
   name: string;
@@ -7,6 +6,15 @@ export interface Staff {
   created_at?: string;
   updated_at?: string;
   user_id?: string;
+  email?: string;
+  phone?: string;
+  paymentType?: string;
+}
+
+export interface StaffFormData {
+  name: string;
+  position?: string;
+  specializations?: number[];
   email?: string;
   phone?: string;
   paymentType?: string;

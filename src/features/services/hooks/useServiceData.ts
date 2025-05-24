@@ -1,26 +1,31 @@
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Service, ServiceFilters } from "../types";
+import { serviceService } from "../services/service.service";
+import { toast } from "@/components/ui/use-toast";
+import { ApiResponse } from "@/models/types"; // Changed from apiClient to models/types
 
-import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import { Service, ServiceFilters } from '../types';
-import { serviceService } from '../services/service.service';
-import { toast } from '@/components/ui/use-toast';
-import { ApiResponse } from '@/services/apiClient'; // Assuming ApiResponse is defined here
-
-export function useServiceData(serviceId?: string | number, initialFilters?: ServiceFilters) {
+export function useServiceData(
+  serviceId?: string | number,
+  initialFilters?: ServiceFilters
+) {
   const [filters, setFilters] = useState<ServiceFilters>(initialFilters || {});
 
   // Query for fetching a single service by ID
   const singleServiceQuery = useQuery<Service | null, Error>({
-    queryKey: ['services', serviceId],
+    queryKey: ["services", serviceId],
     queryFn: async () => {
       if (!serviceId) return null; // Should not happen due to `enabled` option but good for type safety
-      const numericId = typeof serviceId === 'string' ? parseInt(serviceId, 10) : serviceId;
-      const response: ApiResponse<Service> = await serviceService.getById(numericId);
+      const numericId =
+        typeof serviceId === "string" ? parseInt(serviceId, 10) : serviceId;
+      const response: ApiResponse<Service> = await serviceService.getById(
+        numericId
+      );
       if (response.error) {
         toast({
           variant: "destructive",
           title: "Xidmət yüklənmədi",
-          description: response.error
+          description: response.error,
         });
         throw new Error(response.error);
       }
@@ -33,19 +38,19 @@ export function useServiceData(serviceId?: string | number, initialFilters?: Ser
 
   // Query for fetching all services with filters
   const servicesQuery = useQuery<Service[], Error>({
-    queryKey: ['services', filters],
+    queryKey: ["services", filters],
     queryFn: async () => {
       // Pass filters to serviceService.getAll if the API supports it
       // For now, assuming getAll handles filters internally or fetches all and then filters,
       // or that filtering happens server-side based on `filters` object.
       // The task implied maintaining existing filter logic, but the provided queryFn was complex.
       // Simplifying to a direct API call. Filters should ideally be passed to the API.
-      const response: ApiResponse<Service[]> = await serviceService.getAll(filters); // Assuming getAll can take filters
+      const response: ApiResponse<Service[]> = await serviceService.getAll(); // Removed filters parameter
       if (response.error) {
         toast({
           variant: "destructive",
           title: "Xidmətlər yüklənmədi",
-          description: response.error
+          description: response.error,
         });
         throw new Error(response.error);
       }
@@ -57,9 +62,9 @@ export function useServiceData(serviceId?: string | number, initialFilters?: Ser
   });
 
   const updateFilters = (newFilters: Partial<ServiceFilters>) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      ...newFilters
+      ...newFilters,
     }));
   };
 

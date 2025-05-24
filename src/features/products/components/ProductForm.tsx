@@ -1,32 +1,41 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ProductFormData, Product } from '@/models/product.model';
-import { useProductActions } from '../hooks/useProductActions';
-import { Switch } from '@/components/ui/switch';
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ProductFormData, Product } from "@/models/product.model";
+import { useProductActions } from "../hooks/useProductActions";
+import { Switch } from "@/components/ui/switch";
 
 // Define the form validation schema
 const formSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  price: z.number().min(0, 'Price must be 0 or greater'),
+  name: z.string().min(1, "Name is required"),
+  price: z.number().min(0, "Price must be 0 or greater"),
   description: z.string().optional(),
-  stock_quantity: z.number().min(0, 'Stock quantity must be 0 or greater').optional(),
+  stock_quantity: z
+    .number()
+    .min(0, "Stock quantity must be 0 or greater")
+    .optional(),
   category: z.string().optional(),
   image_url: z.string().optional().nullable(),
-  isServiceRelated: z.boolean().optional()
+  isServiceRelated: z.boolean().optional(),
 });
 
 // Interface for component props
@@ -39,62 +48,65 @@ interface ProductFormProps {
 const ProductForm: React.FC<ProductFormProps> = ({
   product,
   onSuccess,
-  onCancel
+  onCancel,
 }) => {
   const isEditMode = !!product;
-  const { createProduct, updateProduct, loading, isCreating, isUpdating } = useProductActions();
-  
+  const { createProduct, updateProduct, isCreatingProduct, isUpdatingProduct } =
+    useProductActions();
+
   // Initialize form with schema validation
   const form = useForm<ProductFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
+      name: "",
       price: 0,
-      description: '',
+      description: "",
       stock_quantity: 0,
-      category: '',
+      category: "",
       image_url: null,
-      isServiceRelated: false
-    }
+      isServiceRelated: false,
+    },
   });
-  
+
   // Populate form when product data is available (edit mode)
   React.useEffect(() => {
     if (product) {
       form.reset({
         name: product.name,
         price: product.price,
-        description: product.description || '',
+        description: product.description || "",
         stock_quantity: product.stock_quantity || 0,
         image_url: product.image_url || null,
-        isServiceRelated: product.isServiceRelated || false
+        isServiceRelated: product.isServiceRelated || false,
       });
     }
   }, [product, form]);
-  
+
   // Handle form submission
   const onSubmit = async (data: ProductFormData) => {
     try {
       let response;
-      
+
       if (isEditMode && product) {
-        response = await updateProduct(product.id!, data);
+        response = await updateProduct({ id: product.id!, productData: data });
       } else {
         response = await createProduct(data);
       }
-      
+
       if (response.data && onSuccess) {
         onSuccess(response.data);
       }
     } catch (error) {
-      console.error('Form submission error:', error);
+      console.error("Form submission error:", error);
     }
   };
-  
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEditMode ? 'Edit Product' : 'Create New Product'}</CardTitle>
+        <CardTitle>
+          {isEditMode ? "Edit Product" : "Create New Product"}
+        </CardTitle>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -113,7 +125,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 </FormItem>
               )}
             />
-            
+
             {/* Price Field */}
             <FormField
               control={form.control}
@@ -122,19 +134,21 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 <FormItem>
                   <FormLabel>Price</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
+                    <Input
+                      type="number"
                       step="0.01"
-                      placeholder="0.00" 
+                      placeholder="0.00"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value))
+                      }
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             {/* Description Field */}
             <FormField
               control={form.control}
@@ -147,14 +161,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
                       placeholder="Product description"
                       className="resize-none"
                       {...field}
-                      value={field.value || ''}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             {/* Stock Quantity Field */}
             <FormField
               control={form.control}
@@ -163,9 +177,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 <FormItem>
                   <FormLabel>Stock Quantity</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      placeholder="0" 
+                    <Input
+                      type="number"
+                      placeholder="0"
                       {...field}
                       onChange={(e) => field.onChange(parseInt(e.target.value))}
                       value={field.value || 0}
@@ -175,7 +189,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 </FormItem>
               )}
             />
-            
+
             {/* Is Service Related Field */}
             <FormField
               control={form.control}
@@ -183,7 +197,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between space-x-2 rounded-md border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">Related to Services</FormLabel>
+                    <FormLabel className="text-base">
+                      Related to Services
+                    </FormLabel>
                     <FormMessage />
                   </div>
                   <FormControl>
@@ -196,16 +212,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
               )}
             />
           </CardContent>
-          
+
           <CardFooter className="flex justify-between">
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={isCreatingProduct || isUpdatingProduct}
             >
-              {isEditMode ? 'Update' : 'Create'}
+              {isEditMode ? "Update" : "Create"}
             </Button>
           </CardFooter>
         </form>

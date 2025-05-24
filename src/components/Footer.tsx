@@ -1,17 +1,15 @@
-
-import React from 'react';
-import { Link } from "react-router-dom";
-
 const Footer = () => {
   return (
     <footer className="border-t py-12 bg-glamour-50">
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="font-bold text-xl text-glamour-800 mb-4">Glamour Studio</h3>
+            <h3 className="font-bold text-xl text-glamour-800 mb-4">
+              Glamour Studio
+            </h3>
             <p className="text-gray-600">
-              Providing premium beauty services since 2020. We're dedicated to enhancing your 
-              natural beauty and building your confidence.
+              Providing premium beauty services since 2020. We're dedicated to
+              enhancing your natural beauty and building your confidence.
             </p>
           </div>
           <div>

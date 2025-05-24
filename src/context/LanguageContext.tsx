@@ -1,11 +1,16 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-// Define available languages - this could also be part of a config
-export type Language = 'en' | 'az' | 'ru' | 'uz';
-export const AVAILABLE_LANGUAGES: ReadonlyArray<Language> = ['en', 'az', 'ru', 'uz']; // Made UPPER_SNAKE_CASE and ReadonlyArray
-export const DEFAULT_LANGUAGE: Language = 'en'; // Made UPPER_SNAKE_CASE
-
-const LOCAL_STORAGE_LANGUAGE_KEY = 'appLanguage'; // Constant for localStorage key
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import {
+  Language,
+  AVAILABLE_LANGUAGES,
+  DEFAULT_LANGUAGE,
+  LOCAL_STORAGE_LANGUAGE_KEY,
+} from "@/config/languages";
 
 interface LanguageContextType {
   language: Language;
@@ -14,23 +19,32 @@ interface LanguageContextType {
   isLoadingTranslations: boolean;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LanguageContext = createContext<LanguageContextType | undefined>(
+  undefined
+);
 
 interface LanguageProviderProps {
   children: ReactNode;
 }
 
-// Consider wrapping development-specific console.logs with 
+// Consider wrapping development-specific console.logs with
 // if (process.env.NODE_ENV === 'development') { /* ... */ } for cleaner production builds.
 
 export const LanguageProvider = ({ children }: LanguageProviderProps) => {
   const [language, setLanguageState] = useState<Language>(() => {
-    const storedLang = localStorage.getItem(LOCAL_STORAGE_LANGUAGE_KEY) as Language | null;
-    return storedLang && AVAILABLE_LANGUAGES.includes(storedLang) ? storedLang : DEFAULT_LANGUAGE;
+    const storedLang = localStorage.getItem(
+      LOCAL_STORAGE_LANGUAGE_KEY
+    ) as Language | null;
+    return storedLang && AVAILABLE_LANGUAGES.includes(storedLang)
+      ? storedLang
+      : DEFAULT_LANGUAGE;
   });
 
-  const [currentTranslations, setCurrentTranslations] = useState<Record<string, string>>({});
-  const [isLoadingTranslations, setIsLoadingTranslations] = useState<boolean>(true);
+  const [currentTranslations, setCurrentTranslations] = useState<
+    Record<string, string>
+  >({});
+  const [isLoadingTranslations, setIsLoadingTranslations] =
+    useState<boolean>(true);
 
   useEffect(() => {
     const loadTranslations = async () => {
@@ -42,7 +56,9 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
         // console.log(`LanguageContext: Translations loaded successfully for ${language}`); // Dev log
       } catch (e) {
         const error = e as Error; // Type assertion for error object
-        console.error(`LanguageContext: Could not load translations for language "${language}". Error: ${error.message}`); // Dev error
+        console.error(
+          `LanguageContext: Could not load translations for language "${language}". Error: ${error.message}`
+        ); // Dev error
         setCurrentTranslations({}); // Fallback to empty translations
         // Optionally, implement a more robust fallback to the default language:
         // if (language !== DEFAULT_LANGUAGE) {
@@ -70,24 +86,31 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
       localStorage.setItem(LOCAL_STORAGE_LANGUAGE_KEY, newLanguage);
       // console.log(`LanguageContext: Language changed to: ${newLanguage}`); // Dev log
     } else {
-      console.warn(`LanguageContext: Attempted to set unsupported language: ${newLanguage}`); // Dev warning
+      console.warn(
+        `LanguageContext: Attempted to set unsupported language: ${newLanguage}`
+      ); // Dev warning
     }
   };
 
   const t = (key: string, params?: Record<string, string | number>): string => {
     // Fallback to the key itself if translation is not found
-    let translation = currentTranslations[key] || key; 
+    let translation = currentTranslations[key] || key;
 
     if (params) {
       Object.entries(params).forEach(([paramKey, paramValue]) => {
-        translation = translation.replace(new RegExp(`{${paramKey}}`, 'g'), String(paramValue));
+        translation = translation.replace(
+          new RegExp(`{${paramKey}}`, "g"),
+          String(paramValue)
+        );
       });
     }
     return translation;
   };
-  
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, isLoadingTranslations }}>
+    <LanguageContext.Provider
+      value={{ language, setLanguage, t, isLoadingTranslations }}
+    >
       {children}
     </LanguageContext.Provider>
   );
@@ -96,7 +119,7 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
+    throw new Error("useLanguage must be used within a LanguageProvider");
   }
   return context;
 };
