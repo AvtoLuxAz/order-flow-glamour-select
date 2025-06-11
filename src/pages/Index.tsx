@@ -1,3 +1,4 @@
+
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
@@ -118,15 +119,28 @@ const Index = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
-  useQuery({
+  // Add error handling for the queries
+  const servicesQuery = useQuery({
     queryKey: ["services"],
     queryFn: () => serviceService.getAll(),
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  useQuery({
+  const productsQuery = useQuery({
     queryKey: ["products"],
     queryFn: () => productService.getAll(),
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Log errors for debugging
+  if (servicesQuery.error) {
+    console.log("Services query error:", servicesQuery.error);
+  }
+  if (productsQuery.error) {
+    console.log("Products query error:", productsQuery.error);
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

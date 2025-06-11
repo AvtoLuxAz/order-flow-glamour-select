@@ -44,8 +44,8 @@ const About = () => {
   const { getLocalizedSetting, isLoading: settingsLoading } = useSettings();
   const { t, language } = useLanguage();
 
-  // Fetch detailed staff data with services
-  const { data: staffWithServices, isLoading: staffLoading } = useQuery({
+  // Fetch detailed staff data with services - add better error handling
+  const { data: staffWithServices, isLoading: staffLoading, error: staffError } = useQuery({
     queryKey: ["staff-with-services"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -65,7 +65,14 @@ const About = () => {
         })
       );
     },
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Log staff error for debugging
+  if (staffError) {
+    console.log("Staff query error:", staffError);
+  }
 
   // Get all about page content from settings
   const aboutUs = getLocalizedSetting("about_us");
@@ -175,6 +182,12 @@ const About = () => {
                     <Skeleton className="h-16 w-full" />
                   </div>
                 ))}
+              </div>
+            ) : staffError ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">
+                  Unable to load team information at the moment. Please try again later.
+                </p>
               </div>
             ) : staffWithServices && Array.isArray(staffWithServices) && staffWithServices.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
