@@ -176,26 +176,40 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({
   );
 
   const selectService = useCallback((serviceId: string) => {
-    console.log("OrderContext: Selecting service", serviceId);
+    const normalizedServiceId = String(serviceId);
+    console.log("OrderContext: Selecting service", normalizedServiceId);
+    console.log("OrderContext: Current selected services before:", selectedServices);
+    
     setSelectedServices((prev) => {
-      if (!prev.includes(serviceId)) {
-        const newServices = [...prev, serviceId];
-        console.log("OrderContext: Updated selected services", newServices);
+      if (!prev.includes(normalizedServiceId)) {
+        const newServices = [...prev, normalizedServiceId];
+        console.log("OrderContext: Updated selected services to:", newServices);
         return newServices;
       }
-      console.log("OrderContext: Service already selected", prev);
+      console.log("OrderContext: Service already selected, keeping:", prev);
       return prev;
     });
-  }, []);
+  }, [selectedServices]);
 
   const unselectService = useCallback((serviceId: string) => {
-    console.log("OrderContext: Unselecting service", serviceId);
+    const normalizedServiceId = String(serviceId);
+    console.log("OrderContext: Unselecting service", normalizedServiceId);
+    console.log("OrderContext: Current selected services before removal:", selectedServices);
+    
     setSelectedServices((prev) => {
-      const newServices = prev.filter((id) => id !== serviceId);
-      console.log("OrderContext: Updated selected services after removal", newServices);
+      const newServices = prev.filter((id) => id !== normalizedServiceId);
+      console.log("OrderContext: Updated selected services after removal to:", newServices);
       return newServices;
     });
-  }, []);
+    
+    // Also remove from service providers
+    setServiceProviders((prev) => {
+      if (!prev) return prev;
+      const filtered = prev.filter((p) => p.serviceId !== normalizedServiceId);
+      console.log("OrderContext: Updated service providers after removal:", filtered);
+      return filtered;
+    });
+  }, [selectedServices]);
 
   // Wrapper functions to handle type conversions
   const setCustomer = useCallback((customerData: Customer) => {
@@ -248,7 +262,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({
     setStep,
     addService: (service: Service) => {
       setSelectedServiceState(service);
-      selectService(service.id);
+      selectService(String(service.id));
     },
     removeService: (serviceId: string) => {
       if (selectedService?.id === serviceId) {

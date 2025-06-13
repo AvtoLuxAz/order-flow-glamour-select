@@ -66,10 +66,10 @@ const ServiceSelection = () => {
 
       if (data) {
         console.log("Raw service data from DB:", data);
-        // Convert numeric IDs to strings consistently
+        // Ensure service IDs are strings for UI consistency
         const fixedData = data.map((service) => ({
           ...service,
-          id: String(service.id), // Convert to string for consistency
+          id: String(service.id),
         })) as Service[];
 
         console.log("Fixed service data with string IDs:", fixedData);
@@ -86,25 +86,28 @@ const ServiceSelection = () => {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const handleServiceToggle = (service: Service) => {
-    console.log("ServiceSelection: Toggling service", service.id, "Current selected:", selectedServices);
+    const serviceId = String(service.id);
+    console.log("ServiceSelection: Toggling service", serviceId);
+    console.log("ServiceSelection: Current selected services:", selectedServices);
+    console.log("ServiceSelection: Is service selected?", selectedServices.includes(serviceId));
     
-    if (selectedServices.includes(service.id)) {
-      console.log("ServiceSelection: Unselecting service", service.id);
-      unselectService(service.id);
+    if (selectedServices.includes(serviceId)) {
+      console.log("ServiceSelection: Unselecting service", serviceId);
+      unselectService(serviceId);
       setExpandedServices((prev) => {
         const newSet = new Set(prev);
-        newSet.delete(service.id);
+        newSet.delete(serviceId);
         return newSet;
       });
       setSelectedStaff((prev) => {
         const newSelected = { ...prev };
-        delete newSelected[service.id];
+        delete newSelected[serviceId];
         return newSelected;
       });
     } else {
-      console.log("ServiceSelection: Selecting service", service.id);
-      selectService(service.id);
-      setExpandedServices((prev) => new Set([...prev, service.id]));
+      console.log("ServiceSelection: Selecting service", serviceId);
+      selectService(serviceId);
+      setExpandedServices((prev) => new Set([...prev, serviceId]));
     }
   };
 
@@ -175,25 +178,30 @@ const ServiceSelection = () => {
         </div>
       )}
 
-      <div className="mb-4">
+      <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+        <h4 className="text-sm font-medium text-blue-800 mb-2">Debug İnfo:</h4>
         <p className="text-xs text-blue-600">
-          Debug: Selected services: {JSON.stringify(selectedServices)}
+          Seçilmiş xidmətlər: {JSON.stringify(selectedServices)}
+        </p>
+        <p className="text-xs text-blue-600">
+          Xidmət sayı: {selectedServices.length}
         </p>
       </div>
 
       {services.map((service) => {
-        const isSelected = selectedServices.includes(service.id);
-        const isExpanded = expandedServices.has(service.id);
+        const serviceId = String(service.id);
+        const isSelected = selectedServices.includes(serviceId);
+        const isExpanded = expandedServices.has(serviceId);
 
-        console.log(`Service ${service.id} (${service.name}): isSelected=${isSelected}, selectedServices includes check=${selectedServices.includes(service.id)}`);
+        console.log(`Service ${serviceId} (${service.name}): isSelected=${isSelected}, includes check=${selectedServices.includes(serviceId)}`);
 
         return (
           <Card
-            key={service.id}
+            key={serviceId}
             className={`transition-all relative ${
               isSelected
-                ? "border-glamour-700 bg-glamour-50"
-                : "border-gray-200"
+                ? "border-glamour-700 bg-glamour-50 ring-2 ring-glamour-500"
+                : "border-gray-200 hover:border-glamour-300"
             }`}
           >
             <DiscountBadge discount={service.discount || 0} />
@@ -204,11 +212,13 @@ const ServiceSelection = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1 pr-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-medium text-gray-900">
+                    <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
                       {service.name}
-                      <span className="text-xs text-gray-500 ml-2">
-                        (ID: {service.id}, Selected: {isSelected ? 'Yes' : 'No'})
-                      </span>
+                      {isSelected && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-glamour-100 text-glamour-800">
+                          ✓ Seçildi
+                        </span>
+                      )}
                     </h3>
                     <div className="flex items-center space-x-2">
                       <PriceDisplay
@@ -231,13 +241,16 @@ const ServiceSelection = () => {
                       {service.description}
                     </p>
                   )}
+                  <div className="text-xs text-gray-400">
+                    ID: {serviceId} | Seçili: {isSelected ? 'Bəli' : 'Xeyr'}
+                  </div>
                 </div>
               </div>
               <div className="absolute bottom-4 right-4">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={(e) => toggleServiceExpansion(service.id, e)}
+                  onClick={(e) => toggleServiceExpansion(serviceId, e)}
                   className="text-glamour-700 hover:text-glamour-800 h-8 w-8 p-0"
                 >
                   <Info className="h-4 w-4" />
@@ -248,11 +261,11 @@ const ServiceSelection = () => {
             {isSelected && (
               <div className="border-t border-gray-200 p-4 bg-gray-50">
                 <StaffSelection
-                  serviceId={service.id}
+                  serviceId={serviceId}
                   onStaffSelect={(staffId, staffName) =>
-                    handleStaffSelect(service.id, staffId, staffName)
+                    handleStaffSelect(serviceId, staffId, staffName)
                   }
-                  selectedStaffId={selectedStaff[service.id]}
+                  selectedStaffId={selectedStaff[serviceId]}
                 />
               </div>
             )}
