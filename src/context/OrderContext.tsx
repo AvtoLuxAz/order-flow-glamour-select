@@ -47,14 +47,14 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({
   const [selectedService, setSelectedServiceState] = useState<Service | null>(
     null
   );
-  const [selectedServices, setSelectedServices] = useState<string[]>([]); // Changed to string[]
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedStaff, setSelectedStaffState] = useState<Staff | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [appointmentDate, setAppointmentDate] = useState<Date | null>(null);
   const [appointmentTime, setAppointmentTime] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [serviceProviders, setServiceProviders] = useState<Array<{
-    serviceId: string; // Changed to string
+    serviceId: string;
     name: string;
   }> | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -154,7 +154,8 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({
   }, []);
 
   const addServiceProvider = useCallback(
-    (serviceId: string, staffName: string) => { // Changed parameter type to string
+    (serviceId: string, staffName: string) => {
+      console.log("OrderContext: Adding service provider", { serviceId, staffName });
       setServiceProviders((prev) => {
         const newProviders = prev ? [...prev] : [];
         const existingIndex = newProviders.findIndex(
@@ -167,23 +168,33 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({
           newProviders.push({ serviceId, name: staffName });
         }
 
+        console.log("OrderContext: Updated service providers", newProviders);
         return newProviders;
       });
     },
     []
   );
 
-  const selectService = useCallback((serviceId: string) => { // Changed parameter type to string
+  const selectService = useCallback((serviceId: string) => {
+    console.log("OrderContext: Selecting service", serviceId);
     setSelectedServices((prev) => {
       if (!prev.includes(serviceId)) {
-        return [...prev, serviceId];
+        const newServices = [...prev, serviceId];
+        console.log("OrderContext: Updated selected services", newServices);
+        return newServices;
       }
+      console.log("OrderContext: Service already selected", prev);
       return prev;
     });
   }, []);
 
-  const unselectService = useCallback((serviceId: string) => { // Changed parameter type to string
-    setSelectedServices((prev) => prev.filter((id) => id !== serviceId));
+  const unselectService = useCallback((serviceId: string) => {
+    console.log("OrderContext: Unselecting service", serviceId);
+    setSelectedServices((prev) => {
+      const newServices = prev.filter((id) => id !== serviceId);
+      console.log("OrderContext: Updated selected services after removal", newServices);
+      return newServices;
+    });
   }, []);
 
   // Wrapper functions to handle type conversions
@@ -239,7 +250,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({
       setSelectedServiceState(service);
       selectService(service.id);
     },
-    removeService: (serviceId: string) => { // Changed parameter type to string
+    removeService: (serviceId: string) => {
       if (selectedService?.id === serviceId) {
         setSelectedServiceState(null);
       }

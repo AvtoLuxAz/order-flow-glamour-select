@@ -65,12 +65,14 @@ const ServiceSelection = () => {
       }
 
       if (data) {
-        // Force all service IDs to be strings
+        console.log("Raw service data from DB:", data);
+        // Convert numeric IDs to strings consistently
         const fixedData = data.map((service) => ({
           ...service,
-          id: String(service.id),
+          id: String(service.id), // Convert to string for consistency
         })) as Service[];
 
+        console.log("Fixed service data with string IDs:", fixedData);
         setServices(fixedData);
         setTotalCount(count || 0);
       }
@@ -84,7 +86,10 @@ const ServiceSelection = () => {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const handleServiceToggle = (service: Service) => {
+    console.log("ServiceSelection: Toggling service", service.id, "Current selected:", selectedServices);
+    
     if (selectedServices.includes(service.id)) {
+      console.log("ServiceSelection: Unselecting service", service.id);
       unselectService(service.id);
       setExpandedServices((prev) => {
         const newSet = new Set(prev);
@@ -97,12 +102,14 @@ const ServiceSelection = () => {
         return newSelected;
       });
     } else {
+      console.log("ServiceSelection: Selecting service", service.id);
       selectService(service.id);
       setExpandedServices((prev) => new Set([...prev, service.id]));
     }
   };
 
   const handleStaffSelect = (serviceId: string, staffId: string, staffName: string) => {
+    console.log("ServiceSelection: Staff selected", { serviceId, staffId, staffName });
     setSelectedStaff((prev) => ({
       ...prev,
       [serviceId]: staffId,
@@ -168,9 +175,17 @@ const ServiceSelection = () => {
         </div>
       )}
 
+      <div className="mb-4">
+        <p className="text-xs text-blue-600">
+          Debug: Selected services: {JSON.stringify(selectedServices)}
+        </p>
+      </div>
+
       {services.map((service) => {
         const isSelected = selectedServices.includes(service.id);
         const isExpanded = expandedServices.has(service.id);
+
+        console.log(`Service ${service.id} (${service.name}): isSelected=${isSelected}, selectedServices includes check=${selectedServices.includes(service.id)}`);
 
         return (
           <Card
@@ -191,6 +206,9 @@ const ServiceSelection = () => {
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-medium text-gray-900">
                       {service.name}
+                      <span className="text-xs text-gray-500 ml-2">
+                        (ID: {service.id}, Selected: {isSelected ? 'Yes' : 'No'})
+                      </span>
                     </h3>
                     <div className="flex items-center space-x-2">
                       <PriceDisplay
