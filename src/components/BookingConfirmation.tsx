@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useOrder } from "@/context/OrderContext";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ interface Customer {
 }
 
 interface Service {
-  id: string; // Changed from number to string
+  id: string;
   name: string;
   duration: number;
   price: number;
@@ -228,17 +229,18 @@ const BookingConfirmation = () => {
         .select("id")
         .eq("email", customer.email)
         .eq("role", "customer")
-        .limit(1);
+        .maybeSingle();
 
       if (userCheckError) {
         console.error("Error checking existing user:", userCheckError);
+        throw userCheckError;
       }
 
-      if (existingUser && existingUser.length > 0) {
-        userId = existingUser[0].id;
+      if (existingUser) {
+        userId = existingUser.id;
 
         // Update user information
-        await supabase
+        const { error: updateError } = await supabase
           .from("users")
           .update({
             first_name: customer.name.split(" ")[0] || "",
@@ -247,6 +249,11 @@ const BookingConfirmation = () => {
             phone: customer.phone,
           })
           .eq("id", userId);
+
+        if (updateError) {
+          console.error("Error updating user:", updateError);
+          throw updateError;
+        }
       } else {
         // Create new user
         const { data: newUser, error: createUserError } = await supabase
@@ -258,7 +265,7 @@ const BookingConfirmation = () => {
             full_name: customer.name,
             phone: customer.phone,
             role: "customer",
-            hashed_password: "default-password", // In production, generate a random password or handle this differently
+            hashed_password: "default-password",
           })
           .select("id")
           .single();
@@ -268,18 +275,19 @@ const BookingConfirmation = () => {
           throw createUserError;
         }
 
+        if (!newUser) {
+          throw new Error("Failed to create user");
+        }
+
         userId = newUser.id;
       }
 
-      // 2. Now the customer is represented by a user with role='customer'
-      const customerId = userId;
-
-      // 3. Create appointment
+      // 2. Create appointment
       const { data: appointment, error: appointmentError } = await supabase
         .from("appointments")
         .insert({
-          customer_user_id: customerId,
-          user_id: userId, // Same as customer_user_id since the customer is creating the appointment
+          customer_user_id: userId,
+          user_id: userId,
           appointment_date: formattedDate,
           start_time: startTime,
           end_time: endTime,
@@ -294,11 +302,15 @@ const BookingConfirmation = () => {
         throw appointmentError;
       }
 
-      // 4. Add service to appointment
+      if (!appointment) {
+        throw new Error("Failed to create appointment");
+      }
+
+      // 3. Add service to appointment
       const appointmentService = {
         appointment_id: appointment.id,
-        service_id: selectedService.id, // This is now a string UUID
-        staff_user_id: selectedStaff.id.toString(),
+        service_id: parseInt(selectedService.id),
+        staff_user_id: selectedStaff.id,
         price: selectedService.price,
         duration: selectedService.duration,
         quantity: 1,
@@ -313,21 +325,19 @@ const BookingConfirmation = () => {
         throw serviceError;
       }
 
-      // 5. Add products to appointment if any
+      // 4. Add products to appointment if any
       if (selectedProducts.length > 0) {
-        const appointmentProducts = selectedProducts.map((product) => ({
-          appointment_id: appointment.id,
-          product_id: product.id,
-          staff_user_id: selectedStaff.id.toString(),
-          price: Number(product.price),
-          quantity: 1,
-          amount: Number(product.price),
-        }));
-
-        for (const product of appointmentProducts) {
+        for (const product of selectedProducts) {
           const { error: productError } = await supabase
             .from("appointment_products")
-            .insert(product);
+            .insert({
+              appointment_id: appointment.id,
+              product_id: product.id,
+              staff_user_id: selectedStaff.id,
+              price: Number(product.price),
+              quantity: 1,
+              amount: Number(product.price),
+            });
 
           if (productError) {
             console.error("Error adding product to appointment:", productError);

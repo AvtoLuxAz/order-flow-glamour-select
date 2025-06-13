@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -64,6 +63,15 @@ interface AppointmentJson {
   request_info?: RequestInfo;
 }
 
+interface Invoice {
+  id: number;
+  invoice_number: string;
+  total_amount: number;
+  status: string;
+  appointment_json: AppointmentJson;
+  created_at: string;
+}
+
 // Type guard to check if data is valid AppointmentJson
 const isValidAppointmentJson = (data: any): data is AppointmentJson => {
   return data && typeof data === 'object' && !Array.isArray(data);
@@ -71,7 +79,7 @@ const isValidAppointmentJson = (data: any): data is AppointmentJson => {
 
 const BookingDetails: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
-  const [invoice, setInvoice] = useState<any>(null);
+  const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,17 +107,13 @@ const BookingDetails: React.FC = () => {
         .from('invoices')
         .select('*')
         .eq('invoice_number', orderId)
-        .single();
+        .maybeSingle();
 
       console.log('BookingDetails: Supabase query result:', { data, error });
 
       if (error) {
         console.error('BookingDetails: Supabase error:', error);
-        if (error.code === 'PGRST116') {
-          setError(`Sifariş "${orderId}" tapılmadı`);
-        } else {
-          setError('Məlumat bazası xətası baş verdi');
-        }
+        setError('Məlumat bazası xətası baş verdi');
         return;
       }
 
@@ -151,7 +155,10 @@ const BookingDetails: React.FC = () => {
         }
 
         console.log('BookingDetails: All validations passed, setting invoice data');
-        setInvoice(data);
+        setInvoice({
+          ...data,
+          appointment_json: appointmentJson
+        } as Invoice);
       } else {
         console.error('BookingDetails: No data returned from query');
         setError('Sifariş tapılmadı');
