@@ -70,6 +70,7 @@ interface Invoice {
   status: string;
   appointment_json: AppointmentJson;
   created_at: string;
+  issued_at?: string; // Added missing property as optional since it might not always be present
 }
 
 // Type guard to check if data is valid AppointmentJson
