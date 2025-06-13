@@ -1,6 +1,6 @@
 
 export interface Service {
-  id: string; // Changed from number to string for UUID
+  id: number; // Changed back to number to match database
   name: string;
   description?: string;
   duration: number; // Duration in minutes (must be number type)

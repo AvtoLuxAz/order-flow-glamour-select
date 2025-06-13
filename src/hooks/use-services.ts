@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from "react";
 import { useApi } from "./use-api";
 import { serviceService } from "@/services";
@@ -36,7 +37,7 @@ export function useServices() {
   }, [toast]);
 
   const getServiceById = useCallback(
-    async (id: string) => { // Changed from string | number to string
+    async (id: number) => { // Changed back to number
       try {
         // If service is already loaded in state, use it
         const existingService = services.find(
@@ -100,7 +101,7 @@ export function useServices() {
   );
 
   const updateService = useCallback(
-    async (id: string, data: Partial<Service>) => {
+    async (id: number, data: Partial<Service>) => {
       try {
         const response = await serviceService.updateService(id, data);
         
@@ -137,7 +138,7 @@ export function useServices() {
   );
 
   const deleteService = useCallback(
-    async (id: string) => {
+    async (id: number) => {
       try {
         const response = await serviceService.deleteService(id);
         

@@ -16,20 +16,23 @@ export const useStaffByService = () => {
   const [loadingByService, setLoadingByService] = useState<Record<string, boolean>>({});
   const [errorByService, setErrorByService] = useState<Record<string, string | null>>({});
 
-  const fetchStaffByService = useCallback(async (serviceId: string, date?: Date) => {
-    if (!serviceId) {
-      console.error('useStaffByService: No serviceId provided');
-      const serviceKey = `service_${serviceId}`;
-      setErrorByService(prev => ({ ...prev, [serviceKey]: 'Service ID is required' }));
+  const fetchStaffByService = useCallback(async (serviceId: string | number, date?: Date) => {
+    const serviceIdStr = serviceId.toString();
+    const serviceIdNum = typeof serviceId === 'string' ? parseInt(serviceId) : serviceId;
+    
+    if (!serviceIdNum || isNaN(serviceIdNum)) {
+      console.error('useStaffByService: Invalid serviceId provided:', serviceId);
+      const serviceKey = `service_${serviceIdStr}`;
+      setErrorByService(prev => ({ ...prev, [serviceKey]: 'Invalid service ID' }));
       return;
     }
 
-    const serviceKey = `service_${serviceId}`;
+    const serviceKey = `service_${serviceIdStr}`;
     setLoadingByService(prev => ({ ...prev, [serviceKey]: true }));
     setErrorByService(prev => ({ ...prev, [serviceKey]: null }));
     
     try {
-      console.log('useStaffByService: Fetching staff for service:', serviceId, 'date:', date);
+      console.log('useStaffByService: Fetching staff for service:', serviceIdNum, 'date:', date);
       
       let staffData;
       
@@ -37,7 +40,7 @@ export const useStaffByService = () => {
         // Date verilsə, availability yoxlayırıq
         const { data, error } = await supabase
           .rpc('get_available_staff_by_service_and_date', {
-            service_id: serviceId,
+            service_id: serviceIdNum,
             check_date: date.toISOString().split('T')[0]
           });
           
@@ -50,7 +53,7 @@ export const useStaffByService = () => {
         // Date verilməsə, bütün staff-ları gətiririk
         const { data, error } = await supabase
           .rpc('get_staff_by_service', {
-            service_id: serviceId
+            service_id: serviceIdNum
           });
           
         if (error) {
@@ -89,8 +92,8 @@ export const useStaffByService = () => {
     }
   }, []);
 
-  const getStaffForService = useCallback((serviceId: string) => {
-    const serviceKey = `service_${serviceId}`;
+  const getStaffForService = useCallback((serviceId: string | number) => {
+    const serviceKey = `service_${serviceId.toString()}`;
     return {
       staff: staffByService[serviceKey] || [],
       loading: loadingByService[serviceKey] || false,

@@ -27,8 +27,8 @@ const ITEMS_PER_PAGE = 6;
 const ServiceSelection = () => {
   const { selectService, unselectService, orderState, addServiceProvider } = useOrder();
   const { t } = useLanguage();
-  const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set()); // Changed from number to string
-  const [selectedStaff, setSelectedStaff] = useState<Record<string, string>>({}); // Changed from number to string
+  const [expandedServices, setExpandedServices] = useState<Set<number>>(new Set()); // Changed back to number
+  const [selectedStaff, setSelectedStaff] = useState<Record<number, string>>({}); // Changed back to number
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -82,8 +82,9 @@ const ServiceSelection = () => {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const handleServiceToggle = (service: Service) => {
-    if (selectedServices.includes(service.id)) {
-      unselectService(service.id);
+    console.log('Service toggle clicked for service:', service.id, typeof service.id);
+    if (selectedServices.includes(service.id.toString())) {
+      unselectService(service.id.toString());
       setExpandedServices((prev) => {
         const newSet = new Set(prev);
         newSet.delete(service.id);
@@ -96,21 +97,21 @@ const ServiceSelection = () => {
         return newSelected;
       });
     } else {
-      selectService(service.id);
+      selectService(service.id.toString());
       setExpandedServices((prev) => new Set([...prev, service.id]));
     }
   };
 
-  const handleStaffSelect = (serviceId: string, staffId: string, staffName: string) => { // Changed serviceId from number to string
+  const handleStaffSelect = (serviceId: number, staffId: string, staffName: string) => {
     console.log('Staff selected:', { serviceId, staffId, staffName });
     setSelectedStaff((prev) => ({
       ...prev,
       [serviceId]: staffId,
     }));
-    addServiceProvider(serviceId, staffName);
+    addServiceProvider(serviceId.toString(), staffName);
   };
 
-  const toggleServiceExpansion = (serviceId: string, event: React.MouseEvent) => { // Changed from number to string
+  const toggleServiceExpansion = (serviceId: number, event: React.MouseEvent) => {
     event.stopPropagation();
     setExpandedServices((prev) => {
       const newSet = new Set(prev);
@@ -150,7 +151,10 @@ const ServiceSelection = () => {
           <Input
             placeholder="Xidmət axtarın..."
             value={searchTerm}
-            onChange={handleSearchChange}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
             className="pl-10"
           />
         </div>
@@ -178,7 +182,7 @@ const ServiceSelection = () => {
       )}
 
       {services.map((service) => {
-        const isSelected = selectedServices.includes(service.id);
+        const isSelected = selectedServices.includes(service.id.toString());
         const isExpanded = expandedServices.has(service.id);
 
         return (
@@ -244,7 +248,7 @@ const ServiceSelection = () => {
             {isSelected && (
               <div className="border-t border-gray-200 p-4 bg-gray-50">
                 <StaffSelection
-                  serviceId={service.id}
+                  serviceId={service.id.toString()}
                   onStaffSelect={(staffId, staffName) =>
                     handleStaffSelect(service.id, staffId, staffName)
                   }
