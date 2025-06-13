@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useOrder } from "@/context/OrderContext";
 import { Button } from "@/components/ui/button";
@@ -151,6 +150,7 @@ const ServiceSelection = () => {
 
   return (
     <div className="space-y-4">
+      {/* Search input */}
       <div className="mb-6 max-w-md">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -163,6 +163,7 @@ const ServiceSelection = () => {
         </div>
       </div>
 
+      {/* Search results count */}
       <div className="mb-4">
         <p className="text-sm text-gray-600">
           {searchTerm
@@ -171,6 +172,7 @@ const ServiceSelection = () => {
         </p>
       </div>
 
+      {/* Total duration display */}
       {totalDuration > 0 && (
         <div className="bg-glamour-50 p-4 rounded-lg">
           <h3 className="font-medium text-glamour-800 mb-2">Ümumi müddət</h3>
@@ -180,6 +182,7 @@ const ServiceSelection = () => {
         </div>
       )}
 
+      {/* Debug info - keeping for troubleshooting */}
       <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
         <h4 className="text-sm font-medium text-blue-800 mb-2">Debug İnfo:</h4>
         <p className="text-xs text-blue-600">
@@ -193,6 +196,7 @@ const ServiceSelection = () => {
         </p>
       </div>
 
+      {/* Services list */}
       {services.map((service) => {
         const serviceId = String(service.id);
         const isSelected = selectedServices.includes(serviceId);
@@ -263,6 +267,7 @@ const ServiceSelection = () => {
               </div>
             </div>
 
+            {/* Staff selection appears when service is selected */}
             {isSelected && (
               <div className="border-t border-gray-200 p-4 bg-gray-50">
                 <StaffSelection
@@ -326,6 +331,7 @@ const ServiceSelection = () => {
         </div>
       )}
 
+      {/* No services found message */}
       {services.length === 0 && !loading && (
         <div className="text-center py-8">
           <p className="text-gray-600">

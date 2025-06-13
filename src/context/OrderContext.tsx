@@ -1,4 +1,3 @@
-
 import React, {
   createContext,
   useContext,
@@ -178,9 +177,9 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({
   const selectService = useCallback((serviceId: string) => {
     const normalizedServiceId = String(serviceId);
     console.log("OrderContext: Selecting service", normalizedServiceId);
-    console.log("OrderContext: Current selected services before:", selectedServices);
     
     setSelectedServices((prev) => {
+      console.log("OrderContext: Current selected services before:", prev);
       if (!prev.includes(normalizedServiceId)) {
         const newServices = [...prev, normalizedServiceId];
         console.log("OrderContext: Updated selected services to:", newServices);
@@ -189,14 +188,14 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({
       console.log("OrderContext: Service already selected, keeping:", prev);
       return prev;
     });
-  }, [selectedServices]);
+  }, []);
 
   const unselectService = useCallback((serviceId: string) => {
     const normalizedServiceId = String(serviceId);
     console.log("OrderContext: Unselecting service", normalizedServiceId);
-    console.log("OrderContext: Current selected services before removal:", selectedServices);
     
     setSelectedServices((prev) => {
+      console.log("OrderContext: Current selected services before removal:", prev);
       const newServices = prev.filter((id) => id !== normalizedServiceId);
       console.log("OrderContext: Updated selected services after removal to:", newServices);
       return newServices;
@@ -209,9 +208,8 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({
       console.log("OrderContext: Updated service providers after removal:", filtered);
       return filtered;
     });
-  }, [selectedServices]);
+  }, []);
 
-  // Wrapper functions to handle type conversions
   const setCustomer = useCallback((customerData: Customer) => {
     setCustomerState(customerData);
   }, []);
