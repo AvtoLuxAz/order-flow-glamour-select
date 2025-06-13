@@ -31,31 +31,73 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ bookingMode }) => {
     { key: "confirmation", label: t("booking.confirmation"), component: BookingConfirmation },
   ];
 
+  // Debug logging for order state
+  useEffect(() => {
+    console.log("CheckoutFlow: Current step:", currentStep);
+    console.log("CheckoutFlow: Selected services:", orderState.selectedServices);
+    console.log("CheckoutFlow: Service providers:", orderState.serviceProviders);
+    console.log("CheckoutFlow: Order state:", orderState);
+  }, [currentStep, orderState.selectedServices, orderState.serviceProviders, orderState]);
+
   const canProceedToNextStep = () => {
+    console.log("CheckoutFlow: Checking if can proceed from step:", currentStep);
+    
     switch (currentStep) {
       case 0: // Services
-        return orderState.selectedServices && orderState.selectedServices.length > 0;
+        const hasServices = orderState.selectedServices && orderState.selectedServices.length > 0;
+        const hasServiceProviders = orderState.serviceProviders && orderState.serviceProviders.length > 0;
+        const canProceed = hasServices && hasServiceProviders;
+        
+        console.log("CheckoutFlow: Services step check:", {
+          hasServices,
+          hasServiceProviders,
+          canProceed,
+          selectedServices: orderState.selectedServices,
+          serviceProviders: orderState.serviceProviders
+        });
+        
+        return canProceed;
       case 1: // Products - optional, always can proceed
         return true;
       case 2: // Date
-        return orderState.appointmentDate && orderState.appointmentTime;
+        const hasDateTime = orderState.appointmentDate && orderState.appointmentTime;
+        console.log("CheckoutFlow: Date step check:", {
+          hasDateTime,
+          appointmentDate: orderState.appointmentDate,
+          appointmentTime: orderState.appointmentTime
+        });
+        return hasDateTime;
       case 3: // Customer
-        return (
+        const hasCustomerInfo = (
           orderState.customer &&
           orderState.customer.name &&
           orderState.customer.email &&
           orderState.customer.phone
         );
+        console.log("CheckoutFlow: Customer step check:", {
+          hasCustomerInfo,
+          customer: orderState.customer
+        });
+        return hasCustomerInfo;
       case 4: // Payment
-        return orderState.paymentMethod;
+        const hasPayment = orderState.paymentMethod;
+        console.log("CheckoutFlow: Payment step check:", {
+          hasPayment,
+          paymentMethod: orderState.paymentMethod
+        });
+        return hasPayment;
       default:
         return true;
     }
   };
 
   const handleNext = () => {
+    console.log("CheckoutFlow: Attempting to go to next step");
     if (currentStep < steps.length - 1 && canProceedToNextStep()) {
+      console.log("CheckoutFlow: Moving to step:", currentStep + 1);
       setCurrentStep(currentStep + 1);
+    } else {
+      console.log("CheckoutFlow: Cannot proceed - requirements not met");
     }
   };
 
@@ -103,6 +145,8 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ bookingMode }) => {
         return null;
     }
   };
+
+  const isProceedDisabled = !canProceedToNextStep();
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -171,16 +215,40 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ bookingMode }) => {
             {t("common.previous")}
           </Button>
 
-          <Button
-            onClick={handleNext}
-            disabled={!canProceedToNextStep()}
-            className="flex items-center bg-glamour-700 hover:bg-glamour-800"
-          >
-            {t("common.next")}
-            <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
+          <div className="flex flex-col items-end">
+            <Button
+              onClick={handleNext}
+              disabled={isProceedDisabled}
+              className="flex items-center bg-glamour-700 hover:bg-glamour-800"
+            >
+              {t("common.next")}
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+            {isProceedDisabled && currentStep === 0 && (
+              <p className="text-xs text-red-600 mt-1">
+                Xidmət və işçi seçilməlidir
+              </p>
+            )}
+          </div>
         </div>
       )}
+
+      {/* Debug Info */}
+      <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+        <h4 className="text-sm font-medium text-yellow-800 mb-2">Debug Info:</h4>
+        <p className="text-xs text-yellow-600">
+          Addım: {currentStep + 1}/{steps.length}
+        </p>
+        <p className="text-xs text-yellow-600">
+          Seçilmiş xidmətlər: {orderState.selectedServices?.length || 0}
+        </p>
+        <p className="text-xs text-yellow-600">
+          Xidmət təminatçıları: {orderState.serviceProviders?.length || 0}
+        </p>
+        <p className="text-xs text-yellow-600">
+          Növbəti addıma keçə bilər: {canProceedToNextStep() ? 'Bəli' : 'Xeyr'}
+        </p>
+      </div>
 
       {/* Reset Button on Confirmation Step */}
       {currentStep === steps.length - 1 && (
