@@ -1,6 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from "react";
-import { useServices } from "@/hooks/use-services";
+import React, { useState, useEffect } from "react";
 import { useOrder } from "@/context/OrderContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -27,8 +26,8 @@ const ITEMS_PER_PAGE = 6;
 const ServiceSelection = () => {
   const { selectService, unselectService, orderState, addServiceProvider } = useOrder();
   const { t } = useLanguage();
-  const [expandedServices, setExpandedServices] = useState<Set<number>>(new Set()); // Changed back to number
-  const [selectedStaff, setSelectedStaff] = useState<Record<number, string>>({}); // Changed back to number
+  const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
+  const [selectedStaff, setSelectedStaff] = useState<Record<string, string>>({});
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,7 +36,6 @@ const ServiceSelection = () => {
 
   const selectedServices = orderState?.selectedServices || [];
 
-  // Fetch services with server-side search and pagination
   useEffect(() => {
     fetchServices();
   }, [currentPage, searchTerm]);
@@ -47,16 +45,14 @@ const ServiceSelection = () => {
     try {
       let query = supabase
         .from("services")
-        .select("*", { count: 'exact' })
+        .select("*", { count: "exact" })
         .order("discount", { ascending: false })
         .order("created_at", { ascending: false });
 
-      // Server-side search
       if (searchTerm.trim()) {
         query = query.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
       }
 
-      // Pagination
       const from = (currentPage - 1) * ITEMS_PER_PAGE;
       const to = from + ITEMS_PER_PAGE - 1;
       query = query.range(from, to);
@@ -69,7 +65,13 @@ const ServiceSelection = () => {
       }
 
       if (data) {
-        setServices(data as Service[]);
+        // Force all service IDs to be strings
+        const fixedData = data.map((service) => ({
+          ...service,
+          id: String(service.id),
+        })) as Service[];
+
+        setServices(fixedData);
         setTotalCount(count || 0);
       }
     } catch (error) {
@@ -82,44 +84,37 @@ const ServiceSelection = () => {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const handleServiceToggle = (service: Service) => {
-    console.log('Service toggle clicked for service:', service.id, typeof service.id);
-    if (selectedServices.includes(service.id.toString())) {
-      unselectService(service.id.toString());
+    if (selectedServices.includes(service.id)) {
+      unselectService(service.id);
       setExpandedServices((prev) => {
         const newSet = new Set(prev);
         newSet.delete(service.id);
         return newSet;
       });
-      // Remove staff selection for this service
       setSelectedStaff((prev) => {
         const newSelected = { ...prev };
         delete newSelected[service.id];
         return newSelected;
       });
     } else {
-      selectService(service.id.toString());
+      selectService(service.id);
       setExpandedServices((prev) => new Set([...prev, service.id]));
     }
   };
 
-  const handleStaffSelect = (serviceId: number, staffId: string, staffName: string) => {
-    console.log('Staff selected:', { serviceId, staffId, staffName });
+  const handleStaffSelect = (serviceId: string, staffId: string, staffName: string) => {
     setSelectedStaff((prev) => ({
       ...prev,
       [serviceId]: staffId,
     }));
-    addServiceProvider(serviceId.toString(), staffName);
+    addServiceProvider(serviceId, staffName);
   };
 
-  const toggleServiceExpansion = (serviceId: number, event: React.MouseEvent) => {
+  const toggleServiceExpansion = (serviceId: string, event: React.MouseEvent) => {
     event.stopPropagation();
     setExpandedServices((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(serviceId)) {
-        newSet.delete(serviceId);
-      } else {
-        newSet.add(serviceId);
-      }
+      newSet.has(serviceId) ? newSet.delete(serviceId) : newSet.add(serviceId);
       return newSet;
     });
   };
@@ -144,37 +139,29 @@ const ServiceSelection = () => {
 
   return (
     <div className="space-y-4">
-      {/* Search Bar */}
       <div className="mb-6 max-w-md">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           <Input
             placeholder="Xidmət axtarın..."
             value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
+            onChange={handleSearchChange}
             className="pl-10"
           />
         </div>
       </div>
 
-      {/* Results Info */}
       <div className="mb-4">
         <p className="text-sm text-gray-600">
-          {searchTerm 
+          {searchTerm
             ? `"${searchTerm}" üçün ${totalCount} nəticə`
-            : `Cəmi ${totalCount} xidmət`
-          }
+            : `Cəmi ${totalCount} xidmət`}
         </p>
       </div>
 
       {totalDuration > 0 && (
         <div className="bg-glamour-50 p-4 rounded-lg">
-          <h3 className="font-medium text-glamour-800 mb-2">
-            Ümumi müddət
-          </h3>
+          <h3 className="font-medium text-glamour-800 mb-2">Ümumi müddət</h3>
           <p className="text-lg font-semibold text-glamour-700">
             {formatDurationMultiLanguage(totalDuration, t)}
           </p>
@@ -182,7 +169,7 @@ const ServiceSelection = () => {
       )}
 
       {services.map((service) => {
-        const isSelected = selectedServices.includes(service.id.toString());
+        const isSelected = selectedServices.includes(service.id);
         const isExpanded = expandedServices.has(service.id);
 
         return (
@@ -195,7 +182,6 @@ const ServiceSelection = () => {
             }`}
           >
             <DiscountBadge discount={service.discount || 0} />
-            
             <div
               className="p-4 cursor-pointer"
               onClick={() => handleServiceToggle(service)}
@@ -214,7 +200,6 @@ const ServiceSelection = () => {
                       />
                     </div>
                   </div>
-
                   <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
                     <div className="flex items-center">
                       <Clock className="h-4 w-4 mr-1" />
@@ -223,7 +208,6 @@ const ServiceSelection = () => {
                       </span>
                     </div>
                   </div>
-
                   {service.description && (
                     <p className="text-gray-600 text-sm mb-2">
                       {service.description}
@@ -231,8 +215,6 @@ const ServiceSelection = () => {
                   )}
                 </div>
               </div>
-              
-              {/* Info button - bottom right */}
               <div className="absolute bottom-4 right-4">
                 <Button
                   variant="ghost"
@@ -248,7 +230,7 @@ const ServiceSelection = () => {
             {isSelected && (
               <div className="border-t border-gray-200 p-4 bg-gray-50">
                 <StaffSelection
-                  serviceId={service.id.toString()}
+                  serviceId={service.id}
                   onStaffSelect={(staffId, staffName) =>
                     handleStaffSelect(service.id, staffId, staffName)
                   }
@@ -266,12 +248,12 @@ const ServiceSelection = () => {
           <Pagination>
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious 
+                <PaginationPrevious
                   onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                   className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 />
               </PaginationItem>
-              
+
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 let page;
                 if (totalPages <= 5) {
@@ -283,7 +265,7 @@ const ServiceSelection = () => {
                 } else {
                   page = currentPage - 2 + i;
                 }
-                
+
                 return (
                   <PaginationItem key={page}>
                     <PaginationLink
@@ -296,9 +278,9 @@ const ServiceSelection = () => {
                   </PaginationItem>
                 );
               })}
-              
+
               <PaginationItem>
-                <PaginationNext 
+                <PaginationNext
                   onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                   className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 />
@@ -311,10 +293,9 @@ const ServiceSelection = () => {
       {services.length === 0 && !loading && (
         <div className="text-center py-8">
           <p className="text-gray-600">
-            {searchTerm 
+            {searchTerm
               ? `"${searchTerm}" üçün nəticə tapılmadı`
-              : "Heç bir xidmət tapılmadı"
-            }
+              : "Heç bir xidmət tapılmadı"}
           </p>
         </div>
       )}

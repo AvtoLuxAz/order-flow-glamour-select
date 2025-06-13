@@ -16,9 +16,9 @@ export const useStaffByService = () => {
   const [loadingByService, setLoadingByService] = useState<Record<string, boolean>>({});
   const [errorByService, setErrorByService] = useState<Record<string, string | null>>({});
 
-  const fetchStaffByService = useCallback(async (serviceId: string | number, date?: Date) => {
+  const fetchStaffByService = useCallback(async (serviceId: string, date?: Date) => {
     const serviceIdStr = serviceId.toString();
-    const serviceIdNum = typeof serviceId === 'string' ? parseInt(serviceId) : serviceId;
+    const serviceIdNum = parseInt(serviceIdStr);
     
     if (!serviceIdNum || isNaN(serviceIdNum)) {
       console.error('useStaffByService: Invalid serviceId provided:', serviceId);
@@ -92,7 +92,7 @@ export const useStaffByService = () => {
     }
   }, []);
 
-  const getStaffForService = useCallback((serviceId: string | number) => {
+  const getStaffForService = useCallback((serviceId: string) => {
     const serviceKey = `service_${serviceId.toString()}`;
     return {
       staff: staffByService[serviceKey] || [],

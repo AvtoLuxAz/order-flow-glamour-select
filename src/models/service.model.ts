@@ -1,6 +1,6 @@
 
 export interface Service {
-  id: number; // Changed back to number to match database
+  id: string; // Changed to string for consistency
   name: string;
   description?: string;
   duration: number; // Duration in minutes (must be number type)

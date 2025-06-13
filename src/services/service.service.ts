@@ -14,14 +14,21 @@ export const serviceService = {
       if (error) {
         return { error: error.message };
       }
-      return { data: data || [] };
+      
+      // Convert numeric IDs to strings
+      const servicesWithStringIds = (data || []).map(service => ({
+        ...service,
+        id: String(service.id)
+      }));
+      
+      return { data: servicesWithStringIds };
     } catch (error) {
       console.error('Error fetching services:', error);
       return { error: error instanceof Error ? error.message : 'Unknown error' };
     }
   },
   
-  getById: async (id: number): Promise<ApiResponse<Service>> => { // Changed back to number
+  getById: async (id: string): Promise<ApiResponse<Service>> => {
     try {
       const { data, error } = await supabase
         .from('services')
@@ -32,7 +39,14 @@ export const serviceService = {
       if (error) {
         return { error: error.message };
       }
-      return { data };
+      
+      // Convert numeric ID to string
+      const serviceWithStringId = {
+        ...data,
+        id: String(data.id)
+      };
+      
+      return { data: serviceWithStringId };
     } catch (error) {
       console.error(`Error fetching service ${id}:`, error);
       return { error: error instanceof Error ? error.message : 'Unknown error' };
@@ -50,14 +64,21 @@ export const serviceService = {
       if (error) {
         return { error: error.message };
       }
-      return { data };
+      
+      // Convert numeric ID to string
+      const serviceWithStringId = {
+        ...data,
+        id: String(data.id)
+      };
+      
+      return { data: serviceWithStringId };
     } catch (error) {
       console.error('Error creating service:', error);
       return { error: error instanceof Error ? error.message : 'Unknown error' };
     }
   },
   
-  update: async (id: number, serviceData: Partial<ServiceFormData>): Promise<ApiResponse<Service>> => { // Changed back to number
+  update: async (id: string, serviceData: Partial<ServiceFormData>): Promise<ApiResponse<Service>> => {
     try {
       const { data, error } = await supabase
         .from('services')
@@ -69,14 +90,21 @@ export const serviceService = {
       if (error) {
         return { error: error.message };
       }
-      return { data };
+      
+      // Convert numeric ID to string
+      const serviceWithStringId = {
+        ...data,
+        id: String(data.id)
+      };
+      
+      return { data: serviceWithStringId };
     } catch (error) {
       console.error(`Error updating service ${id}:`, error);
       return { error: error instanceof Error ? error.message : 'Unknown error' };
     }
   },
   
-  delete: async (id: number): Promise<ApiResponse<boolean>> => { // Changed back to number
+  delete: async (id: string): Promise<ApiResponse<boolean>> => {
     try {
       const { error } = await supabase
         .from('services')
@@ -98,7 +126,7 @@ export const serviceService = {
     return serviceService.getAll();
   },
   
-  getServiceById: async (id: number): Promise<ApiResponse<Service>> => { // Changed back to number
+  getServiceById: async (id: string): Promise<ApiResponse<Service>> => {
     return serviceService.getById(id);
   },
   
@@ -106,11 +134,11 @@ export const serviceService = {
     return serviceService.create(serviceData);
   },
   
-  updateService: async (id: number, serviceData: Partial<ServiceFormData>): Promise<ApiResponse<Service>> => { // Changed back to number
+  updateService: async (id: string, serviceData: Partial<ServiceFormData>): Promise<ApiResponse<Service>> => {
     return serviceService.update(id, serviceData);
   },
   
-  deleteService: async (id: number): Promise<ApiResponse<boolean>> => { // Changed back to number
+  deleteService: async (id: string): Promise<ApiResponse<boolean>> => {
     return serviceService.delete(id);
   },
   
