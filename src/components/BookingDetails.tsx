@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, RefreshCw, AlertCircle } from "lucide-react";
 import BookingDetailPage from "@/components/admin/BookingDetailPage";
 
-// Proper TypeScript interfaces for appointment_json
+// Proper TypeScript interfaces
 interface CustomerInfo {
   full_name?: string;
   email?: string;
@@ -63,6 +64,7 @@ interface AppointmentJson {
   request_info?: RequestInfo;
 }
 
+// issued_at is now REQUIRED
 interface Invoice {
   id: number;
   invoice_number: string;
@@ -70,10 +72,10 @@ interface Invoice {
   status: string;
   appointment_json: AppointmentJson;
   created_at: string;
-  issued_at?: string;
+  issued_at: string; // ✅ Required
 }
 
-// Type guard to check if data is valid AppointmentJson
+// Type guard for AppointmentJson
 const isValidAppointmentJson = (data: any): data is AppointmentJson => {
   return data && typeof data === 'object' && !Array.isArray(data);
 };
@@ -85,13 +87,9 @@ const BookingDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('BookingDetails: orderId from URL params:', orderId);
-    console.log('BookingDetails: Current URL:', window.location.href);
-    
     if (orderId) {
       fetchInvoiceDetails();
     } else {
-      console.error('BookingDetails: No orderId found in URL params');
       setError('Sifariş ID-si URL-də tapılmadı');
       setLoading(false);
     }
@@ -101,76 +99,56 @@ const BookingDetails: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      console.log('BookingDetails: Fetching invoice with invoice_number:', orderId);
-      
+
       const { data, error } = await supabase
         .from('invoices')
         .select('*')
         .eq('invoice_number', orderId)
         .maybeSingle();
 
-      console.log('BookingDetails: Supabase query result:', { data, error });
-
       if (error) {
-        console.error('BookingDetails: Supabase error:', error);
         setError('Məlumat bazası xətası baş verdi');
         return;
       }
 
       if (data) {
-        console.log('BookingDetails: Invoice data found:', data);
-        console.log('BookingDetails: appointment_json structure:', data.appointment_json);
-        
-        // Safely parse appointment_json with proper type checking
         if (!data.appointment_json) {
-          console.error('BookingDetails: appointment_json is null or undefined');
           setError('Sifariş məlumatları natamam: təyinat məlumatları yoxdur');
           return;
         }
 
-        // Parse the JSON data safely
         let appointmentJson: AppointmentJson;
         try {
-          // If it's already an object, use it directly; if it's a string, parse it
-          appointmentJson = typeof data.appointment_json === 'string' 
-            ? JSON.parse(data.appointment_json) 
+          appointmentJson = typeof data.appointment_json === 'string'
+            ? JSON.parse(data.appointment_json)
             : data.appointment_json as AppointmentJson;
-        } catch (parseError) {
-          console.error('BookingDetails: Error parsing appointment_json:', parseError);
+        } catch {
           setError('Sifariş məlumatları səhvdir: JSON formatında deyil');
           return;
         }
-        
+
         if (!isValidAppointmentJson(appointmentJson)) {
-          console.error('BookingDetails: appointment_json is not a valid object');
           setError('Sifariş məlumatları səhvdir: təyinat məlumatları düzgün formatda deyil');
           return;
         }
 
-        // Check for required fields in appointment_json
         if (!appointmentJson.customer_info) {
-          console.error('BookingDetails: Missing customer_info in appointment_json');
           setError('Sifariş məlumatları natamam: müştəri məlumatları yoxdur');
           return;
         }
 
-        console.log('BookingDetails: All validations passed, setting invoice data');
-        
-        // Ensure issued_at is present for the BookingDetailPage component
-        const invoiceWithIssuedAt = {
+        // Ensure issued_at is always present
+        const invoiceWithIssuedAt: Invoice = {
           ...data,
           appointment_json: appointmentJson,
-          issued_at: data.issued_at || data.created_at // Use created_at as fallback if issued_at is missing
-        } as Invoice & { issued_at: string };
-        
+          issued_at: data.issued_at || data.created_at // fallback
+        };
+
         setInvoice(invoiceWithIssuedAt);
       } else {
-        console.error('BookingDetails: No data returned from query');
         setError('Sifariş tapılmadı');
       }
-    } catch (err) {
-      console.error('BookingDetails: Error in fetchInvoiceDetails:', err);
+    } catch {
       setError('Sifariş məlumatları yüklənə bilmədi');
     } finally {
       setLoading(false);
@@ -178,9 +156,7 @@ const BookingDetails: React.FC = () => {
   };
 
   const handleRetry = () => {
-    if (orderId) {
-      fetchInvoiceDetails();
-    }
+    if (orderId) fetchInvoiceDetails();
   };
 
   const handleGoBack = () => {
@@ -243,9 +219,9 @@ const BookingDetails: React.FC = () => {
                   </div>
                 </AlertDescription>
               </Alert>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
+                <Button
                   onClick={handleRetry}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
                   disabled={!orderId}
@@ -253,8 +229,8 @@ const BookingDetails: React.FC = () => {
                   <RefreshCw className="h-5 w-5 mr-2" />
                   Yenidən Cəhd Et
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleGoBack}
                   className="px-8 py-3 text-lg border-2"
                 >
