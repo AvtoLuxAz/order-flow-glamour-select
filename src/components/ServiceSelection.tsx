@@ -89,9 +89,11 @@ const ServiceSelection = () => {
     const serviceId = String(service.id);
     console.log("ServiceSelection: Toggling service", serviceId);
     console.log("ServiceSelection: Current selected services:", selectedServices);
-    console.log("ServiceSelection: Is service selected?", selectedServices.includes(serviceId));
     
-    if (selectedServices.includes(serviceId)) {
+    const isCurrentlySelected = selectedServices.includes(serviceId);
+    console.log("ServiceSelection: Is service currently selected?", isCurrentlySelected);
+    
+    if (isCurrentlySelected) {
       console.log("ServiceSelection: Unselecting service", serviceId);
       unselectService(serviceId);
       setExpandedServices((prev) => {
@@ -186,6 +188,9 @@ const ServiceSelection = () => {
         <p className="text-xs text-blue-600">
           Xidmət sayı: {selectedServices.length}
         </p>
+        <p className="text-xs text-blue-600">
+          OrderState: {orderState ? "Mövcud" : "Mövcud deyil"}
+        </p>
       </div>
 
       {services.map((service) => {
@@ -193,7 +198,7 @@ const ServiceSelection = () => {
         const isSelected = selectedServices.includes(serviceId);
         const isExpanded = expandedServices.has(serviceId);
 
-        console.log(`Service ${serviceId} (${service.name}): isSelected=${isSelected}, includes check=${selectedServices.includes(serviceId)}`);
+        console.log(`Service ${serviceId} (${service.name}): isSelected=${isSelected}, selectedServices=${JSON.stringify(selectedServices)}`);
 
         return (
           <Card
@@ -242,7 +247,7 @@ const ServiceSelection = () => {
                     </p>
                   )}
                   <div className="text-xs text-gray-400">
-                    ID: {serviceId} | Seçili: {isSelected ? 'Bəli' : 'Xeyr'}
+                    ID: {serviceId} | Seçili: {isSelected ? 'Bəli' : 'Xeyr'} | Array includes: {selectedServices.includes(serviceId) ? 'Bəli' : 'Xeyr'}
                   </div>
                 </div>
               </div>
