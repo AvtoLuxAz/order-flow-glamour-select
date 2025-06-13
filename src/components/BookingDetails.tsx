@@ -70,7 +70,7 @@ interface Invoice {
   status: string;
   appointment_json: AppointmentJson;
   created_at: string;
-  issued_at?: string; // Added missing property as optional since it might not always be present
+  issued_at?: string;
 }
 
 // Type guard to check if data is valid AppointmentJson
@@ -156,10 +156,15 @@ const BookingDetails: React.FC = () => {
         }
 
         console.log('BookingDetails: All validations passed, setting invoice data');
-        setInvoice({
+        
+        // Ensure issued_at is present for the BookingDetailPage component
+        const invoiceWithIssuedAt = {
           ...data,
-          appointment_json: appointmentJson
-        } as Invoice);
+          appointment_json: appointmentJson,
+          issued_at: data.issued_at || data.created_at // Use created_at as fallback if issued_at is missing
+        } as Invoice & { issued_at: string };
+        
+        setInvoice(invoiceWithIssuedAt);
       } else {
         console.error('BookingDetails: No data returned from query');
         setError('Sifariş tapılmadı');
